@@ -1,40 +1,55 @@
 {
-  "rules": {
-    "curly": false,
-    "eofline": false,
-    "align": [true, "parameters"],
-    "class-name": true,
-    "indent": [true, "spaces"],
-    "max-line-length": [true, 150],
-    "no-consecutive-blank-lines": true,
-    "no-trailing-whitespace": true,
-    "no-duplicate-variable": true,
-    "no-var-keyword": true,
-    "no-empty": false,
-    "no-unused-expression": true,
-    "no-use-before-declare": false,
-    "no-var-requires": true,
-    "no-require-imports": true,
-    "one-line": [true,
-      "check-else",
-      "check-whitespace",
-      "check-open-brace"],
-    "quotemark": [true,
-      "single",
-      "avoid-escape"],
-    "semicolon": true,
-    "typedef-whitespace": [true, {
-      "call-signature": "nospace",
-      "index-signature": "nospace",
-      "parameter": "nospace",
-      "property-declaration": "nospace",
-      "variable-declaration": "nospace"
-    }],
-    "whitespace": [true,
-      "check-branch",
-      "check-decl",
-      "check-operator",
-      "check-separator",
-      "check-type"]
-  }
+  "defaultSeverity": "error",
+  "extends": [
+      "tslint:recommended"
+  ],
+  "jsRules": {},
+  "rules": 
+  {
+      "unified-signatures":false,
+      "one-variable-per-declaration":false,
+      "array-type":false,
+      "member-access":false,
+      "object-literal-sort-keys":false,
+      "align": false,
+      "only-arrow-functions": false,
+      "no-string-literal":false,
+      "interface-name": false,
+      "comment-format": false,
+      "class-name": false,
+      "no-trailing-whitespace": false,
+      "curly":false,
+      "ordered-imports":false,
+      "quotemark":false,
+      "member-ordering":false,
+      "jsdoc-format":false,
+      "whitespace":false,
+      "max-classes-per-file":false,
+      "no-empty":false,
+      "prefer-const":false,
+      "arrow-parens":false,
+      "one-line":false,
+      "max-line-length": {
+          "options": [1240]
+      },
+      "variable-name":false,
+      "prefer-method-signature":false,
+      "new-parens": true,
+      "no-arg": true,
+      "no-bitwise": true,
+      "no-conditional-assignment": true,
+      "no-consecutive-blank-lines": false,
+      "no-console": {
+          "severity": "none",
+          "options": [
+              "debug",
+              "info",
+              "log",
+              "time",
+              "timeEnd",
+              "trace"
+          ]
+      }
+  },
+  "rulesDirectory": []
 }
