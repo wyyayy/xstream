@@ -794,9 +794,9 @@ var Stream =  (function () {
         var L = a.length;
         if (this._d)
             this._dl._n(t);
-        if (L == 1)
+        if (L === 1)
             a[0]._n(t);
-        else if (L == 0)
+        else if (L === 0)
             return;
         else {
             var b = cp(a);
@@ -813,16 +813,16 @@ var Stream =  (function () {
         this._x();
         if (this._d)
             this._dl._e(err);
-        if (L == 1)
+        if (L === 1)
             a[0]._e(err);
-        else if (L == 0)
+        else if (L === 0)
             return;
         else {
             var b = cp(a);
             for (var i = 0; i < L; i++)
                 b[i]._e(err);
         }
-        if (!this._d && L == 0)
+        if (!this._d && L === 0)
             throw this._err;
     };
     Stream.prototype._c = function () {
@@ -831,9 +831,9 @@ var Stream =  (function () {
         this._x();
         if (this._d)
             this._dl._c();
-        if (L == 1)
+        if (L === 1)
             a[0]._c();
-        else if (L == 0)
+        else if (L === 0)
             return;
         else {
             var b = cp(a);
