@@ -138,7 +138,7 @@ describe('buffer (extra)', () => {
         done('should not emit');
       },
       error(e) {
-        assert(e == 'boom!');
+        assert(e === 'boom!');
         done();
       },
       complete() {

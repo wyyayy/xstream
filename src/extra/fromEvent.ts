@@ -1,22 +1,25 @@
 /// <reference types="node" />
-import {EventEmitter} from 'events';
-import {Stream, InternalProducer, InternalListener} from '../index';
+import { EventEmitter } from 'events';
+import { Stream, InternalProducer, InternalListener } from '../index';
 
 export class DOMEventProducer implements InternalProducer<Event> {
   public type = 'fromEvent';
   private listener: EventListener | null;
 
   constructor(private node: EventTarget,
-              private eventType: string,
-              private useCapture: boolean) {
+    private eventType: string,
+    private useCapture: boolean)
+  {
   }
 
-  _start(out: InternalListener<Event>) {
+  _start(out: InternalListener<Event>)
+  {
     this.listener = (e) => out._n(e);
     this.node.addEventListener(this.eventType, this.listener, this.useCapture);
   }
 
-  _stop() {
+  _stop()
+  {
     this.node.removeEventListener(this.eventType, this.listener as any, this.useCapture);
     this.listener = null;
   }
@@ -28,20 +31,24 @@ export class NodeEventProducer implements InternalProducer<any> {
 
   constructor(private node: EventEmitter, private eventName: string) { }
 
-  _start(out: InternalListener<any>) {
-    this.listener = (...args: Array<any>) => {
+  _start(out: InternalListener<any>)
+  {
+    this.listener = (...args: Array<any>) =>
+    {
       return (args.length > 1) ? out._n(args) : out._n(args[0]);
     };
     this.node.addListener(this.eventName, this.listener);
   }
 
-  _stop() {
+  _stop()
+  {
     this.node.removeListener(this.eventName, this.listener as any);
     this.listener = null;
   }
 }
 
-function isEmitter(element: any): element is EventEmitter {
+function isEmitter(element: any): element is EventEmitter
+{
   return element.emit && element.addListener;
 }
 
@@ -139,11 +146,14 @@ function fromEvent<T = any>(element: EventEmitter, eventName: string): Stream<T>
 function fromEvent<T extends Event = Event>(element: EventTarget, eventName: string, useCapture?: boolean): Stream<T>;
 
 function fromEvent<T = any>(element: EventEmitter | EventTarget,
-                            eventName: string,
-                            useCapture: boolean = false): Stream<T> {
-  if (isEmitter(element)) {
+  eventName: string,
+  useCapture: boolean = false): Stream<T>
+{
+  if (isEmitter(element))
+  {
     return new Stream<T>(new NodeEventProducer(element, eventName));
-  } else {
+  } else
+  {
     return new Stream<T>(new DOMEventProducer(element, eventName, useCapture) as any);
   }
 }

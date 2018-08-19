@@ -6,6 +6,10 @@
   "jsRules": {},
   "rules": 
   {
+      "no-var-requires":false,
+      "trailing-comma":false,
+      "eofline": false,
+      "ban-types":false,
       "unified-signatures":false,
       "one-variable-per-declaration":false,
       "array-type":false,
