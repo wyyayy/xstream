@@ -1209,33 +1209,31 @@ class Take<T> implements Operator<T, T> {
   }
 }
 
-export class Stream<T> implements InternalListener<T>
-{
-  public _producer: InternalProducer<T>;
-
-  protected _internalListeners: Array<InternalListener<T>>; // 'ils' = Internal listeners
+export class Stream<T> implements InternalListener<T> {
+  public _prod: InternalProducer<T>;
+  protected _ils: Array<InternalListener<T>>; // 'ils' = Internal listeners
   protected _stopID: any;
-  protected _debugListener: InternalListener<T>; // the debug listener
-  protected _debugEnabled: boolean; // flag indicating the existence of the debug listener
-  protected _imitationTarget: Stream<T>; // imitation target if this Stream will imitate
+  protected _dl: InternalListener<T>; // the debug listener
+  protected _d: boolean; // flag indicating the existence of the debug listener
+  protected _target: Stream<T>; // imitation target if this Stream will imitate
   protected _err: any;
 
   constructor(producer?: InternalProducer<T>)
   {
-    this._producer = producer || NO as InternalProducer<T>;
-    this._internalListeners = [];
+    this._prod = producer || NO as InternalProducer<T>;
+    this._ils = [];
     this._stopID = NO;
-    this._debugListener = NO as InternalListener<T>;
-    this._debugEnabled = false;
-    this._imitationTarget = NO as Stream<T>;
+    this._dl = NO as InternalListener<T>;
+    this._d = false;
+    this._target = NO as Stream<T>;
     this._err = NO;
   }
 
   _n(t: T): void
   {
-    const a = this._internalListeners;
+    const a = this._ils;
     const L = a.length;
-    if (this._debugEnabled) this._debugListener._n(t);
+    if (this._d) this._dl._n(t);
     if (L === 1) a[0]._n(t); else if (L === 0) return; else
     {
       const b = cp(a);
@@ -1247,24 +1245,24 @@ export class Stream<T> implements InternalListener<T>
   {
     if (this._err !== NO) return;
     this._err = err;
-    const a = this._internalListeners;
+    const a = this._ils;
     const L = a.length;
     this._x();
-    if (this._debugEnabled) this._debugListener._e(err);
+    if (this._d) this._dl._e(err);
     if (L === 1) a[0]._e(err); else if (L === 0) return; else
     {
       const b = cp(a);
       for (let i = 0; i < L; i++) b[i]._e(err);
     }
-    if (!this._debugEnabled && L === 0) throw this._err;
+    if (!this._d && L === 0) throw this._err;
   }
 
   _c(): void
   {
-    const a = this._internalListeners;
+    const a = this._ils;
     const L = a.length;
     this._x();
-    if (this._debugEnabled) this._debugListener._c();
+    if (this._d) this._dl._c();
     if (L === 1) a[0]._c(); else if (L === 0) return; else
     {
       const b = cp(a);
@@ -1274,26 +1272,26 @@ export class Stream<T> implements InternalListener<T>
 
   _x(): void
   { // tear down logic, after error or complete
-    if (this._internalListeners.length === 0) return;
-    if (this._producer !== NO) this._producer._stop();
+    if (this._ils.length === 0) return;
+    if (this._prod !== NO) this._prod._stop();
     this._err = NO;
-    this._internalListeners = [];
+    this._ils = [];
   }
 
   _stopNow()
   {
     // WARNING: code that calls this method should
     // first check if this._prod is valid (not `NO`)
-    this._producer._stop();
+    this._prod._stop();
     this._err = NO;
     this._stopID = NO;
   }
 
   _add(il: InternalListener<T>): void
   {
-    const ta = this._imitationTarget;
+    const ta = this._target;
     if (ta !== NO) return ta._add(il);
-    const a = this._internalListeners;
+    const a = this._ils;
     a.push(il);
     if (a.length > 1) return;
     if (this._stopID !== NO)
@@ -1302,22 +1300,21 @@ export class Stream<T> implements InternalListener<T>
       this._stopID = NO;
     } else
     {
-      const p = this._producer;
+      const p = this._prod;
       if (p !== NO) p._start(this);
     }
   }
 
   _remove(il: InternalListener<T>): void
   {
-    const target = this._imitationTarget;
-    if (target !== NO) return target._remove(il);
-
-    const a = this._internalListeners;
+    const ta = this._target;
+    if (ta !== NO) return ta._remove(il);
+    const a = this._ils;
     const i = a.indexOf(il);
     if (i > -1)
     {
       a.splice(i, 1);
-      if (this._producer !== NO && a.length <= 0)
+      if (this._prod !== NO && a.length <= 0)
       {
         this._err = NO;
         this._stopID = setTimeout(() => this._stopNow());
@@ -1334,7 +1331,7 @@ export class Stream<T> implements InternalListener<T>
   // assumes as a precondition that this._ils has just one listener.
   _pruneCycles()
   {
-    if (this._hasNoSinks(this, [])) this._remove(this._internalListeners[0]);
+    if (this._hasNoSinks(this, [])) this._remove(this._ils[0]);
   }
 
   // Checks whether *there is no* path starting from `x` that leads to an end
@@ -1349,10 +1346,10 @@ export class Stream<T> implements InternalListener<T>
         return true; else
         if ((x as any as OutSender<any>).out && (x as any as OutSender<any>).out !== NO)
           return this._hasNoSinks((x as any as OutSender<any>).out, trace.concat(x)); else
-          if ((x as Stream<any>)._internalListeners)
+          if ((x as Stream<any>)._ils)
           {
-            for (let i = 0, N = (x as Stream<any>)._internalListeners.length; i < N; i++)
-              if (!this._hasNoSinks((x as Stream<any>)._internalListeners[i], trace.concat(x)))
+            for (let i = 0, N = (x as Stream<any>)._ils.length; i < N; i++)
+              if (!this._hasNoSinks((x as Stream<any>)._ils[i], trace.concat(x)))
                 return false;
             return true;
           } else return false;
@@ -1727,7 +1724,7 @@ export class Stream<T> implements InternalListener<T>
   mapTo<U>(projectedValue: U): Stream<U>
   {
     const s = this.map(() => projectedValue);
-    const op: Operator<T, U> = s._producer as Operator<T, U>;
+    const op: Operator<T, U> = s._prod as Operator<T, U>;
     op.type = 'mapTo';
     return s;
   }
@@ -1756,10 +1753,10 @@ export class Stream<T> implements InternalListener<T>
    */
   filter(passes: (t: T) => boolean): Stream<T>
   {
-    const p = this._producer;
+    const p = this._prod;
     if (p instanceof Filter)
       return new Stream<T>(new Filter<T>(and((p as Filter<T>).f, passes),
-        (p as Filter<T>).ins));
+                                        (p as Filter<T>).ins ));
     return new Stream<T>(new Filter<T>(passes, this));
   }
 
@@ -1959,7 +1956,7 @@ export class Stream<T> implements InternalListener<T>
    */
   flatten<R>(this: Stream<Stream<R>>): T
   {
-    const p = this._producer;
+    const p = this._prod;
     return new Stream<R>(new Flatten(this)) as T & Stream<R>;
   }
 
@@ -2095,9 +2092,9 @@ export class Stream<T> implements InternalListener<T>
       throw new Error('A MemoryStream was given to imitate(), but it only ' +
         'supports a Stream. Read more about this restriction here: ' +
         'https://github.com/staltz/xstream#faq');
-    this._imitationTarget = target;
-    for (let ils = this._internalListeners, N = ils.length, i = 0; i < N; i++) target._add(ils[i]);
-    this._internalListeners = [];
+    this._target = target;
+    for (let ils = this._ils, N = ils.length, i = 0; i < N; i++) target._add(ils[i]);
+    this._ils = [];
   }
 
   /**
@@ -2166,15 +2163,15 @@ export class Stream<T> implements InternalListener<T>
   {
     if (!listener)
     {
-      this._debugEnabled = false;
-      this._debugListener = NO as InternalListener<T>;
+      this._d = false;
+      this._dl = NO as InternalListener<T>;
     } else
     {
-      this._debugEnabled = true;
+      this._d = true;
       (listener as InternalListener<T>)._n = listener.next || noop;
       (listener as InternalListener<T>)._e = listener.error || noop;
       (listener as InternalListener<T>)._c = listener.complete || noop;
-      this._debugListener = listener as InternalListener<T>;
+      this._dl = listener as InternalListener<T>;
     }
   }
 }
@@ -2196,9 +2193,9 @@ export class MemoryStream<T> extends Stream<T> {
 
   _add(il: InternalListener<T>): void
   {
-    const ta = this._imitationTarget;
+    const ta = this._target;
     if (ta !== NO) return ta._add(il);
-    const a = this._internalListeners;
+    const a = this._ils;
     a.push(il);
     if (a.length > 1)
     {
@@ -2212,7 +2209,7 @@ export class MemoryStream<T> extends Stream<T> {
       this._stopID = NO;
     } else if (this._has) il._n(this._v); else
     {
-      const p = this._producer;
+      const p = this._prod;
       if (p !== NO) p._start(this);
     }
   }

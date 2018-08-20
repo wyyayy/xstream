@@ -6,6 +6,9 @@
   "jsRules": {},
   "rules": 
   {
+      "no-shadowed-variable":false,
+      "no-angle-bracket-type-assertion":false,
+      "object-literal-shorthand":false,
       "no-var-requires":false,
       "trailing-comma":false,
       "eofline": false,
