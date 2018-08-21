@@ -3,13 +3,13 @@ import $$observable from 'symbol-observable';
 const NO = {};
 function noop() { }
 
-function cp<T>(a: Array<T>): Array<T>
-{
-  const l = a.length;
-  const b = Array(l);
-  for (let i = 0; i < l; ++i) b[i] = a[i];
-  return b;
-}
+// function cp<T>(a: Array<T>): Array<T>
+// {
+//   const l = a.length;
+//   const b = Array(l);
+//   for (let i = 0; i < l; ++i) b[i] = a[i];
+//   return b;
+// }
 
 function and<T>(f1: (t: T) => boolean, f2: (t: T) => boolean): (t: T) => boolean
 {
@@ -1236,7 +1236,7 @@ export class Stream<T> implements InternalListener<T> {
     if (this._d) this._dl._n(t);
     if (L === 1) a[0]._n(t); else if (L === 0) return; else
     {
-      const b = cp(a);
+      const b = a.slice(0);
       for (let i = 0; i < L; i++) b[i]._n(t);
     }
   }
@@ -1251,7 +1251,7 @@ export class Stream<T> implements InternalListener<T> {
     if (this._d) this._dl._e(err);
     if (L === 1) a[0]._e(err); else if (L === 0) return; else
     {
-      const b = cp(a);
+      const b = a.slice(0);
       for (let i = 0; i < L; i++) b[i]._e(err);
     }
     if (!this._d && L === 0) throw this._err;
@@ -1265,7 +1265,7 @@ export class Stream<T> implements InternalListener<T> {
     if (this._d) this._dl._c();
     if (L === 1) a[0]._c(); else if (L === 0) return; else
     {
-      const b = cp(a);
+      const b = a.slice(0);
       for (let i = 0; i < L; i++) b[i]._c();
     }
   }

@@ -235,6 +235,16 @@ describe('fromEvent (extra) - EventEmitter', () =>
       }
     });
 
+    stream.addListener({
+      next: (x: any) =>
+      {
+        console.log(x);
+      },
+      complete: () =>
+      {
+      }
+    });
+
     target.emit('test', 1, 'foo', true);
     target.emit('test', 2, 'bar', false);
   });

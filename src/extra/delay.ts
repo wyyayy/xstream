@@ -1,45 +1,54 @@
-import {Operator, Stream} from '../index';
+import { Operator, Stream } from '../index';
 
 class DelayOperator<T> implements Operator<T, T> {
   public type = 'delay';
   public out: Stream<T> = null as any;
 
   constructor(public dt: number,
-              public ins: Stream<T>) {
+    public ins: Stream<T>)
+  {
   }
 
-  _start(out: Stream<T>): void {
+  _start(out: Stream<T>): void
+  {
     this.out = out;
     this.ins._add(this);
   }
 
-  _stop(): void {
+  _stop(): void
+  {
     this.ins._remove(this);
     this.out = null as any;
   }
 
-  _n(t: T) {
+  _n(t: T)
+  {
     const u = this.out;
     if (!u) return;
-    const id = setInterval(() => {
+    const id = setInterval(() =>
+    {
       u._n(t);
       clearInterval(id);
     }, this.dt);
   }
 
-  _e(err: any) {
+  _e(err: any)
+  {
     const u = this.out;
     if (!u) return;
-    const id = setInterval(() => {
+    const id = setInterval(() =>
+    {
       u._e(err);
       clearInterval(id);
     }, this.dt);
   }
 
-  _c() {
+  _c()
+  {
     const u = this.out;
     if (!u) return;
-    const id = setInterval(() => {
+    const id = setInterval(() =>
+    {
       u._c();
       clearInterval(id);
     }, this.dt);
@@ -85,8 +94,10 @@ class DelayOperator<T> implements Operator<T, T> {
  * @param {number} period The amount of silence required in milliseconds.
  * @return {Stream}
  */
-export default function delay<T>(period: number): (ins: Stream<T>) => Stream<T> {
-  return function delayOperator(ins: Stream<T>): Stream<T> {
+export default function delay<T>(period: number): (ins: Stream<T>) => Stream<T>
+{
+  return function delayOperator(ins: Stream<T>): Stream<T>
+  {
     return new Stream<T>(new DelayOperator(period, ins));
   };
 }

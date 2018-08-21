@@ -1,18 +1,22 @@
-import {Operator, Stream, InternalListener, OutSender, NO_IL} from '../index';
+import { Operator, Stream, InternalListener, OutSender, NO_IL } from '../index';
 
 class SeparatorIL<T> implements InternalListener<any>, OutSender<Array<T>> {
-  constructor(public out: Stream<Array<T>>, private op: BufferOperator<T>) {
+  constructor(public out: Stream<Array<T>>, private op: BufferOperator<T>)
+  {
   }
 
-  _n(t: any) {
+  _n(t: any)
+  {
     this.op.flush();
   }
 
-  _e(err: any) {
+  _e(err: any)
+  {
     this.out._e(err);
   }
 
-  _c() {
+  _c()
+  {
     this.op.flush();
     this.out._c();
   }
@@ -24,24 +28,29 @@ class BufferOperator<T> implements Operator<T, Array<T>> {
   private sil: InternalListener<any>;
   private acc: Array<T> = [];
 
-  constructor(public s: Stream<any>, public ins: Stream<T>) {
+  constructor(public s: Stream<any>, public ins: Stream<T>)
+  {
   }
 
-  flush() {
-    if (this.acc.length > 0) {
+  flush()
+  {
+    if (this.acc.length > 0)
+    {
       this.out._n(this.acc);
       this.acc = [];
     }
   }
 
-  _start(out: Stream<Array<T>>): void {
+  _start(out: Stream<Array<T>>): void
+  {
     this.out = out;
     this.ins._add(this);
     this.sil = new SeparatorIL(out, this);
     this.s._add(this.sil);
   }
 
-  _stop(): void {
+  _stop(): void
+  {
     this.flush();
     this.ins._remove(this);
     this.out = null as any;
@@ -49,17 +58,20 @@ class BufferOperator<T> implements Operator<T, Array<T>> {
     this.sil = NO_IL;
   }
 
-  _n(t: T) {
+  _n(t: T)
+  {
     this.acc.push(t);
   }
 
-  _e(err: any) {
+  _e(err: any)
+  {
     const u = this.out;
     if (!u) return;
     u._e(err);
   }
 
-  _c() {
+  _c()
+  {
     const out = this.out;
     if (!out) return;
     this.flush();
@@ -104,8 +116,10 @@ class BufferOperator<T> implements Operator<T, Array<T>> {
  * split the output stream.
  * @return {Stream}
  */
-export default function buffer<T>(s: Stream<any>): (ins: Stream<T>) => Stream<Array<T>> {
-  return function bufferOperator(ins: Stream<T>) {
+export default function buffer<T>(s: Stream<any>): (ins: Stream<T>) => Stream<Array<T>>
+{
+  return function bufferOperator(ins: Stream<T>)
+  {
     return new Stream<Array<T>>(new BufferOperator<T>(s, ins));
   };
 }

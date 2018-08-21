@@ -15,13 +15,13 @@ var symbol_observable_1 = require("symbol-observable");
 var NO = {};
 exports.NO = NO;
 function noop() { }
-function cp(a) {
-    var l = a.length;
-    var b = Array(l);
-    for (var i = 0; i < l; ++i)
-        b[i] = a[i];
-    return b;
-}
+
+
+
+
+
+
+
 function and(f1, f2) {
     return function andFn(t) {
         return f1(t) && f2(t);
@@ -799,7 +799,7 @@ var Stream =  (function () {
         else if (L === 0)
             return;
         else {
-            var b = cp(a);
+            var b = a.slice(0);
             for (var i = 0; i < L; i++)
                 b[i]._n(t);
         }
@@ -818,7 +818,7 @@ var Stream =  (function () {
         else if (L === 0)
             return;
         else {
-            var b = cp(a);
+            var b = a.slice(0);
             for (var i = 0; i < L; i++)
                 b[i]._e(err);
         }
@@ -836,7 +836,7 @@ var Stream =  (function () {
         else if (L === 0)
             return;
         else {
-            var b = cp(a);
+            var b = a.slice(0);
             for (var i = 0; i < L; i++)
                 b[i]._c();
         }
