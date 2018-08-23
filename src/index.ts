@@ -1390,7 +1390,7 @@ export class Stream<T> implements InternalListener<T> {
    * @param {Listener} listener
    * @returns {Subscription}
    */
-  subscribe(listener: Partial<Listener<T>> | ((v: T) => void)): Subscription
+  subscribe(listener: Partial<Listener<T>> | ((onNext: T) => void)): Subscription
   {
     if(typeof(listener) === 'object')
     {
@@ -1399,10 +1399,10 @@ export class Stream<T> implements InternalListener<T> {
     }
     else
     {
-      let temp = {};
-      (temp as Listener<T>).next = listener;
-      (temp as Listener<T>).error = noop;
-      (temp as Listener<T>).complete = noop;
+      let temp = {} as Partial<Listener<T>>;
+      temp.next = listener;
+      temp.error = noop;
+      temp.complete = noop;
       
       this.addListener(temp);
       return new StreamSub<T>(this, temp as InternalListener<T>);

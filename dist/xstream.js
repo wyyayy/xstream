@@ -942,9 +942,9 @@ var Stream =  (function () {
         }
         else {
             var temp = {};
-            temp._n = listener;
-            temp._e = noop;
-            temp._c = noop;
+            temp.next = listener;
+            temp.error = noop;
+            temp.complete = noop;
             this.addListener(temp);
             return new StreamSub(this, temp);
         }
