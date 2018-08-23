@@ -936,9 +936,24 @@ var Stream =  (function () {
     };
     
     Stream.prototype.subscribe = function (listener) {
-        this.addListener(listener);
-        return new StreamSub(this, listener);
+        if (typeof (listener) === 'object') {
+            this.addListener(listener);
+            return new StreamSub(this, listener);
+        }
+        else {
+            var temp = {};
+            temp._n = listener;
+            temp._e = noop;
+            temp._c = noop;
+            this.addListener(temp);
+            return new StreamSub(this, temp);
+        }
     };
+    
+    
+    
+    
+    
     
     Stream.prototype[symbol_observable_1.default] = function () {
         return this;

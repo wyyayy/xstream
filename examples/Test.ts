@@ -2,25 +2,46 @@ import xs from '../src/index';
 import delay from '../src/extra/delay';
 import { Listener } from '..';
 
-let stream = xs.of(10, 20, 30, 40, 41, 42);
+class Tester
+{
+  public member1: number = 123;
 
-stream.addListener({
-  next: x => 
+  public Start()
+  {
+    // let stream = xs.of(10, 20, 30, 40, 41, 42);
+
+    // stream.addListener({
+    //   next: x => 
+    //   {
+    //     console.log(this.member1);
+    //     //console.log(x);
+    //   },
+    //   error: err => console.error(err),
+    //   complete: () => console.log('done'),
+    // });
+
+    this.TestLambda(x =>
     {
-       console.log(x);
-    },
-  error: err => console.error(err),
-  complete: () => console.log('done'),
-});
+      console.log(this.member1);
+    });
 
-stream.addListener({
-    next: x => 
-      {
-         console.log(x + 1);
-      },
-    error: err => console.error(err),
-    complete: () => console.log('done'),
-  });
+    this.TestLambda(this.TestFunc);
+
+  }
+
+  public TestFunc = ()=>
+  {
+    console.log(this.member1);
+  }
+
+  public TestLambda(func: (v: any) => void)
+  {
+    func(null);
+  }
+}
+
+let tester = new Tester();
+tester.Start();
 
 // let producer = 
 // {

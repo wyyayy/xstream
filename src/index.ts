@@ -1390,12 +1390,31 @@ export class Stream<T> implements InternalListener<T> {
    * @param {Listener} listener
    * @returns {Subscription}
    */
-  subscribe(listener: Partial<Listener<T>>): Subscription
+  subscribe(listener: Partial<Listener<T>> | ((v: T) => void)): Subscription
   {
-    this.addListener(listener);
-    return new StreamSub<T>(this, listener as InternalListener<T>);
+    if(typeof(listener) === 'object')
+    {
+      this.addListener(listener);
+      return new StreamSub<T>(this, listener as InternalListener<T>);
+    }
+    else
+    {
+      let temp = {};
+      (temp as Listener<T>).next = listener;
+      (temp as Listener<T>).error = noop;
+      (temp as Listener<T>).complete = noop;
+      
+      this.addListener(temp);
+      return new StreamSub<T>(this, temp as InternalListener<T>);
+    }
   }
-
+  
+  // subscribe(listener: Partial<Listener<T>>): Subscription
+  // {
+  //   this.addListener(listener);
+  //   return new StreamSub<T>(this, listener as InternalListener<T>);
+  // }
+  
   /**
    * Add interop between most.js and RxJS 5
    *

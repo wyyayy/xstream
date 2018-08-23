@@ -6,6 +6,8 @@
   "jsRules": {},
   "rules": 
   {
+      "forin":false,
+      "typedef-whitespace":false,
       "no-shadowed-variable":false,
       "no-angle-bracket-type-assertion":false,
       "object-literal-shorthand":false,
