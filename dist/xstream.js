@@ -935,6 +935,9 @@ var Stream =  (function () {
         this._remove(listener);
     };
     
+    
+    
+    
     Stream.prototype.subscribe = function (listener) {
         if (typeof (listener) === 'object') {
             this.addListener(listener);
@@ -942,9 +945,16 @@ var Stream =  (function () {
         }
         else {
             var temp = {};
-            temp.next = listener;
-            temp.error = noop;
-            temp.complete = noop;
+            if (listener.length === 1) {
+                temp.next = listener;
+                temp.error = noop;
+                temp.complete = noop;
+            }
+            else {
+                temp.next = noop;
+                temp.error = noop;
+                temp.complete = listener;
+            }
             this.addListener(temp);
             return new StreamSub(this, temp);
         }

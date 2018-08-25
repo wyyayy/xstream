@@ -87,6 +87,14 @@ export interface Listener<T>
   complete: () => void;
 }
 
+export interface PartialListener<T> 
+{
+  closed?: boolean;
+  next: (value: T) => void;
+  error: (err: any) => void;
+  complete: () => void;
+}
+
 export interface Subscription
 {
   unsubscribe(): void;
@@ -1209,7 +1217,8 @@ class Take<T> implements Operator<T, T> {
   }
 }
 
-export class Stream<T> implements InternalListener<T> {
+export class Stream<T> implements InternalListener<T> 
+{
   public _prod: InternalProducer<T>;
   protected _ils: Array<InternalListener<T>>; // 'ils' = Internal listeners
   protected _stopID: any;
@@ -1383,16 +1392,24 @@ export class Stream<T> implements InternalListener<T> {
     this._remove(listener as InternalListener<T>);
   }
 
+  // subscribe(listener: Partial<Listener<T>> 
+  //   | ((onNext: T) => void) 
+  //   | ((onEnd:void) => void)): Subscription
+
+
   /**
    * Adds a Listener to the Stream returning a Subscription to remove that
    * listener.
    *
-   * @param {Listener} listener
+   * @param {Listener} listener, can be a Partial<Listener<T>> instance or a 
+   * onNext callback or a onComplete callback
    * @returns {Subscription}
    */
-  subscribe(listener: Partial<Listener<T>> | ((onNext: T) => void)): Subscription
+  subscribe(listener: Partial<Listener<T>> 
+    | ((onNext: T) => void) 
+    | ( /* onComplete */ () => void)): Subscription
   {
-    if(typeof(listener) === 'object')
+    if (typeof (listener) === 'object')
     {
       this.addListener(listener);
       return new StreamSub<T>(this, listener as InternalListener<T>);
@@ -1400,21 +1417,30 @@ export class Stream<T> implements InternalListener<T> {
     else
     {
       let temp = {} as Partial<Listener<T>>;
-      temp.next = listener;
-      temp.error = noop;
-      temp.complete = noop;
-      
+
+      if(listener.length === 1)
+      {
+        temp.next = listener as ((onNext: T) => void);
+        temp.error = noop;
+        temp.complete = noop;
+      }
+      else
+      {
+        temp.next = noop;
+        temp.error = noop;
+        temp.complete = listener as (() => void);
+      }
       this.addListener(temp);
-      return new StreamSub<T>(this, temp as InternalListener<T>);
+      return new StreamSub<T>(this, temp as InternalListener<T>);  
     }
   }
-  
+
   // subscribe(listener: Partial<Listener<T>>): Subscription
   // {
   //   this.addListener(listener);
   //   return new StreamSub<T>(this, listener as InternalListener<T>);
   // }
-  
+
   /**
    * Add interop between most.js and RxJS 5
    *
@@ -1775,7 +1801,7 @@ export class Stream<T> implements InternalListener<T> {
     const p = this._prod;
     if (p instanceof Filter)
       return new Stream<T>(new Filter<T>(and((p as Filter<T>).f, passes),
-                                        (p as Filter<T>).ins ));
+        (p as Filter<T>).ins));
     return new Stream<T>(new Filter<T>(passes, this));
   }
 

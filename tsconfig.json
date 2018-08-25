@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "experimentalDecorators": true,
     "removeComments": false,
     "preserveConstEnums": true,
     "inlineSourceMap": true,
@@ -12,12 +13,7 @@
     "noEmitHelpers": false,
     "target": "ES5",
     "outDir": "./",
-    "lib": [
-      "dom",
-      "es5",
-      "es2015.collection",
-      "es2015.promise"
-    ]
+    "lib": [ "dom", "es5", "es2015.promise", "esnext"],
   },
   "formatCodeOptions": {
     "indentSize": 2,
@@ -40,6 +36,8 @@
     "src/extra/throttle.ts",
     "src/extra/tween.ts",
     "src/index.ts",
+
+    "examples/Test2.ts",
   ],
 
   "filesGlob": [
