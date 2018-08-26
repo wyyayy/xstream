@@ -7,16 +7,16 @@ class DebounceOperator<T> implements Operator<T, T> {
   private t: any = NO;
 
   constructor(public dt: number,
-              public ins: Stream<T>) {
+              public input: Stream<T>) {
   }
 
   _start(out: Stream<T>): void {
     this.out = out;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = null as any;
     this.id = null;
   }

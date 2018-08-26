@@ -63,7 +63,7 @@ export interface OutSender<T>
 export interface Operator<T, R> extends InternalProducer<R>, InternalListener<T>, OutSender<R>
 {
   type: string;
-  ins: Stream<T>;
+  input: Stream<T>;
   _start(out: Stream<R>): void;
 }
 
@@ -561,7 +561,7 @@ class Periodic implements InternalProducer<number> {
 
 class Debug<T> implements Operator<T, T> {
   public type = 'debug';
-  public ins: Stream<T>;
+  public input: Stream<T>;
   public out: Stream<T>;
   private s: (t: T) => any; // spy
   private l: string; // label
@@ -572,7 +572,7 @@ class Debug<T> implements Operator<T, T> {
   constructor(ins: Stream<T>, arg?: string | ((t: T) => any));
   constructor(ins: Stream<T>, arg?: string | ((t: T) => any) | undefined)
   {
-    this.ins = ins;
+    this.input = ins;
     this.out = NO as Stream<T>;
     this.s = noop;
     this.l = '';
@@ -582,12 +582,12 @@ class Debug<T> implements Operator<T, T> {
   _start(out: Stream<T>): void
   {
     this.out = out;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void
   {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = NO as Stream<T>;
   }
 
@@ -626,14 +626,14 @@ class Debug<T> implements Operator<T, T> {
 
 class Drop<T> implements Operator<T, T> {
   public type = 'drop';
-  public ins: Stream<T>;
+  public input: Stream<T>;
   public out: Stream<T>;
   public max: number;
   private dropped: number;
 
   constructor(max: number, ins: Stream<T>)
   {
-    this.ins = ins;
+    this.input = ins;
     this.out = NO as Stream<T>;
     this.max = max;
     this.dropped = 0;
@@ -643,12 +643,12 @@ class Drop<T> implements Operator<T, T> {
   {
     this.out = out;
     this.dropped = 0;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void
   {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = NO as Stream<T>;
   }
 
@@ -700,34 +700,39 @@ class EndWhenListener<T> implements InternalListener<any> {
   }
 }
 
-class EndWhen<T> implements Operator<T, T> {
+///... 它其实是一个Combinator，也就是将2个stream合并为一个Producer，从而形成一个新的Stream
+class EndWhen<T> implements Operator<T, T> 
+{
   public type = 'endWhen';
-  public ins: Stream<T>;
-  public out: Stream<T>;
-  public o: Stream<any>; // o = other
-  private oil: InternalListener<any>; // oil = other InternalListener
 
-  constructor(o: Stream<any>, ins: Stream<T>)
+  public out: Stream<T>;
+
+  public input: Stream<T>;
+
+  public evt: Stream<any>; /// Event stream indicate end.
+  private evtListener: InternalListener<any>; // oil = other InternalListener
+
+  constructor(evt: Stream<any>, ins: Stream<T>)
   {
-    this.ins = ins;
+    this.input = ins;
     this.out = NO as Stream<T>;
-    this.o = o;
-    this.oil = NO_IL;
+    this.evt = evt;
+    this.evtListener = NO_IL;
   }
 
   _start(out: Stream<T>): void
   {
     this.out = out;
-    this.o._add(this.oil = new EndWhenListener(out, this));
-    this.ins._add(this);
+    this.evt._add(this.evtListener = new EndWhenListener(out, this));
+    this.input._add(this);
   }
 
   _stop(): void
   {
-    this.ins._remove(this);
-    this.o._remove(this.oil);
+    this.input._remove(this);
+    this.evt._remove(this.evtListener);
     this.out = NO as Stream<T>;
-    this.oil = NO_IL;
+    this.evtListener = NO_IL;
   }
 
   end(): void
@@ -759,13 +764,13 @@ class EndWhen<T> implements Operator<T, T> {
 
 class Filter<T> implements Operator<T, T> {
   public type = 'filter';
-  public ins: Stream<T>;
+  public input: Stream<T>;
   public out: Stream<T>;
   public f: (t: T) => boolean;
 
   constructor(passes: (t: T) => boolean, ins: Stream<T>)
   {
-    this.ins = ins;
+    this.input = ins;
     this.out = NO as Stream<T>;
     this.f = passes;
   }
@@ -773,12 +778,12 @@ class Filter<T> implements Operator<T, T> {
   _start(out: Stream<T>): void
   {
     this.out = out;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void
   {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = NO as Stream<T>;
   }
 
@@ -835,7 +840,7 @@ class FlattenListener<T> implements InternalListener<T> {
 
 class Flatten<T> implements Operator<Stream<T>, T> {
   public type = 'flatten';
-  public ins: Stream<Stream<T>>;
+  public input: Stream<Stream<T>>;
   public out: Stream<T>;
   private open: boolean;
   public inner: Stream<T>; // Current inner Stream
@@ -843,7 +848,7 @@ class Flatten<T> implements Operator<Stream<T>, T> {
 
   constructor(ins: Stream<Stream<T>>)
   {
-    this.ins = ins;
+    this.input = ins;
     this.out = NO as Stream<T>;
     this.open = true;
     this.inner = NO as Stream<T>;
@@ -856,12 +861,12 @@ class Flatten<T> implements Operator<Stream<T>, T> {
     this.open = true;
     this.inner = NO as Stream<T>;
     this.il = NO_IL;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void
   {
-    this.ins._remove(this);
+    this.input._remove(this);
     if (this.inner !== NO) this.inner._remove(this.il);
     this.out = NO as Stream<T>;
     this.open = true;
@@ -901,7 +906,7 @@ class Flatten<T> implements Operator<Stream<T>, T> {
 
 class Fold<T, R> implements Operator<T, R> {
   public type = 'fold';
-  public ins: Stream<T>;
+  public input: Stream<T>;
   public out: Stream<R>;
   public f: (t: T) => R;
   public seed: R;
@@ -909,7 +914,7 @@ class Fold<T, R> implements Operator<T, R> {
 
   constructor(f: (acc: R, t: T) => R, seed: R, ins: Stream<T>)
   {
-    this.ins = ins;
+    this.input = ins;
     this.out = NO as Stream<R>;
     this.f = (t: T) => f(this.acc, t);
     this.acc = this.seed = seed;
@@ -920,12 +925,12 @@ class Fold<T, R> implements Operator<T, R> {
     this.out = out;
     this.acc = this.seed;
     out._n(this.acc);
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void
   {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = NO as Stream<R>;
     this.acc = this.seed;
   }
@@ -956,14 +961,14 @@ class Fold<T, R> implements Operator<T, R> {
 
 class Last<T> implements Operator<T, T> {
   public type = 'last';
-  public ins: Stream<T>;
+  public input: Stream<T>;
   public out: Stream<T>;
   private has: boolean;
   private val: T;
 
   constructor(ins: Stream<T>)
   {
-    this.ins = ins;
+    this.input = ins;
     this.out = NO as Stream<T>;
     this.has = false;
     this.val = NO as T;
@@ -973,12 +978,12 @@ class Last<T> implements Operator<T, T> {
   {
     this.out = out;
     this.has = false;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void
   {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = NO as Stream<T>;
     this.val = NO as T;
   }
@@ -1010,13 +1015,13 @@ class Last<T> implements Operator<T, T> {
 
 class MapOp<T, R> implements Operator<T, R> {
   public type = 'map';
-  public ins: Stream<T>;
+  public input: Stream<T>;
   public out: Stream<R>;
   public f: (t: T) => R;
 
   constructor(project: (t: T) => R, ins: Stream<T>)
   {
-    this.ins = ins;
+    this.input = ins;
     this.out = NO as Stream<R>;
     this.f = project;
   }
@@ -1024,12 +1029,12 @@ class MapOp<T, R> implements Operator<T, R> {
   _start(out: Stream<R>): void
   {
     this.out = out;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void
   {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = NO as Stream<R>;
   }
 
@@ -1083,13 +1088,13 @@ class Remember<T> implements InternalProducer<T> {
 
 class ReplaceError<T> implements Operator<T, T> {
   public type = 'replaceError';
-  public ins: Stream<T>;
+  public input: Stream<T>;
   public out: Stream<T>;
   public f: (err: any) => Stream<T>;
 
   constructor(replacer: (err: any) => Stream<T>, ins: Stream<T>)
   {
-    this.ins = ins;
+    this.input = ins;
     this.out = NO as Stream<T>;
     this.f = replacer;
   }
@@ -1097,12 +1102,12 @@ class ReplaceError<T> implements Operator<T, T> {
   _start(out: Stream<T>): void
   {
     this.out = out;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void
   {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = NO as Stream<T>;
   }
 
@@ -1119,8 +1124,8 @@ class ReplaceError<T> implements Operator<T, T> {
     if (u === NO) return;
     try
     {
-      this.ins._remove(this);
-      (this.ins = this.f(err))._add(this);
+      this.input._remove(this);
+      (this.input = this.f(err))._add(this);
     } catch (e)
     {
       u._e(e);
@@ -1164,14 +1169,14 @@ class StartWith<T> implements InternalProducer<T> {
 
 class Take<T> implements Operator<T, T> {
   public type = 'take';
-  public ins: Stream<T>;
+  public input: Stream<T>;
   public out: Stream<T>;
   public max: number;
   private taken: number;
 
   constructor(max: number, ins: Stream<T>)
   {
-    this.ins = ins;
+    this.input = ins;
     this.out = NO as Stream<T>;
     this.max = max;
     this.taken = 0;
@@ -1181,12 +1186,12 @@ class Take<T> implements Operator<T, T> {
   {
     this.out = out;
     this.taken = 0;
-    if (this.max <= 0) out._c(); else this.ins._add(this);
+    if (this.max <= 0) out._c(); else this.input._add(this);
   }
 
   _stop(): void
   {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = NO as Stream<T>;
   }
 
@@ -1224,7 +1229,7 @@ export enum RxEvtType
   Complete,
 }
 
-export class Stream<T> implements InternalListener<T> 
+export class Stream<T> implements InternalListener<T>
 {
   public _prod: InternalProducer<T>;
   protected _ils: Array<InternalListener<T>>; // 'ils' = Internal listeners
@@ -1407,8 +1412,8 @@ export class Stream<T> implements InternalListener<T>
    * onNext callback or a onComplete callback
    * @returns {Subscription}
    */
-  subscribe(listener: Partial<Listener<T>> 
-    | ((onNext: T) => void) 
+  subscribe(listener: Partial<Listener<T>>
+    | ((onNext: T) => void)
     | ( /* onComplete */ () => void)): Subscription
   {
     if (typeof (listener) === 'object')
@@ -1420,7 +1425,7 @@ export class Stream<T> implements InternalListener<T>
     {
       let temp = {} as Partial<Listener<T>>;
 
-      if(listener.length === 1)
+      if (listener.length === 1)
       {
         temp.next = listener as ((onNext: T) => void);
         temp.error = noop;
@@ -1433,7 +1438,7 @@ export class Stream<T> implements InternalListener<T>
         temp.complete = listener as (() => void);
       }
       this.addListener(temp);
-      return new StreamSub<T>(this, temp as InternalListener<T>);  
+      return new StreamSub<T>(this, temp as InternalListener<T>);
     }
   }
 
@@ -1444,17 +1449,17 @@ export class Stream<T> implements InternalListener<T>
    * @param {Listener} listener, can be a next callback or error callback or complete callback.
    * @param {RxEvtType} evtType, specifiy which event need to be subscribed.
    * @returns {Subscription}
-   */  
-  subscribeOf(listener: ((next: T) => void) 
-                    | ((err: any)=> void)
-                    | (()=> void)
-        , evtType: RxEvtType = RxEvtType.Next)
+   */
+  subscribeOf(listener: ((next: T) => void)
+    | ((err: any) => void)
+    | (() => void)
+    , evtType: RxEvtType = RxEvtType.Next): Subscription
   {
     let temp = {} as Partial<Listener<T>>;
 
-    temp.next = evtType === RxEvtType.Next? listener : noop;
-    temp.error = evtType === RxEvtType.Error? listener : noop;
-    temp.complete = evtType === RxEvtType.Complete? listener as (() => void) : noop;
+    temp.next = evtType === RxEvtType.Next ? listener : noop;
+    temp.error = evtType === RxEvtType.Error ? listener : noop;
+    temp.complete = evtType === RxEvtType.Complete ? listener as (() => void) : noop;
 
     this.addListener(temp);
     return new StreamSub<T>(this, temp as InternalListener<T>);
@@ -1820,7 +1825,7 @@ export class Stream<T> implements InternalListener<T>
     const p = this._prod;
     if (p instanceof Filter)
       return new Stream<T>(new Filter<T>(and((p as Filter<T>).f, passes),
-        (p as Filter<T>).ins));
+        (p as Filter<T>).input));
     return new Stream<T>(new Filter<T>(passes, this));
   }
 

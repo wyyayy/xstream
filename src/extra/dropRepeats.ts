@@ -7,18 +7,18 @@ export class DropRepeatsOperator<T> implements Operator<T, T> {
   public isEq: (x: T, y: T) => boolean;
   private v: T = <any> empty;
 
-  constructor(public ins: Stream<T>,
+  constructor(public input: Stream<T>,
               fn: ((x: T, y: T) => boolean) | undefined) {
     this.isEq = fn ? fn : (x, y) => x === y;
   }
 
   _start(out: Stream<T>): void {
     this.out = out;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = null as any;
     this.v = empty as any;
   }

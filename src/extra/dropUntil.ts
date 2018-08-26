@@ -23,17 +23,17 @@ export class DropUntilOperator<T> implements Operator<T, T> {
   private on: boolean = false;
 
   constructor(public o: Stream<any>, // o = other
-              public ins: Stream<T>) {
+              public input: Stream<T>) {
   }
 
   _start(out: Stream<T>): void {
     this.out = out;
     this.o._add(this.oil = new OtherIL(out, this));
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.o._remove(this.oil);
     this.out = null as any;
     this.oil = NO_IL;

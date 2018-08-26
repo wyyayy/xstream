@@ -23,16 +23,16 @@ export class FlattenConcOperator<T> implements Operator<Stream<T>, T> {
   private active: number = 1; // number of outers and inners that have not yet ended
   public out: Stream<T> = null as any;
 
-  constructor(public ins: Stream<Stream<T>>) {
+  constructor(public input: Stream<Stream<T>>) {
   }
 
   _start(out: Stream<T>): void {
     this.out = out;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.active = 1;
     this.out = null as any;
   }

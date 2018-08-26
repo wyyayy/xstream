@@ -3,8 +3,8 @@ import { Subscription } from "../src/index";
 import delay from '../src/extra/delay';
 
 //let stream = xs.periodic(500).endWhen(xs.periodic(2100).take(1));
-let stream = xs.periodic(500).endWhen(xs.periodic(2100));
-//let stream = xs.periodic(500).take(4);
+//let stream = xs.periodic(500).endWhen(xs.periodic(2100));
+let stream = xs.periodic(500).take(4);
 //let stream = xs.of(10, 20, 30, 40);
 
 let subscription: Subscription;

@@ -72,7 +72,7 @@ export class SampleCombineListener<T> implements InternalListener<T> {
 
 export class SampleCombineOperator<T> implements Operator<T, Array<any>> {
   public type = 'sampleCombine';
-  public ins: Stream<T>;
+  public input: Stream<T>;
   public others: Array<Stream<any>>;
   public out: Stream<Array<any>>;
   public ils: Array<SampleCombineListener<any>>;
@@ -80,7 +80,7 @@ export class SampleCombineOperator<T> implements Operator<T, Array<any>> {
   public vals: Array<any>;
 
   constructor(ins: Stream<T>, streams: Array<Stream<any>>) {
-    this.ins = ins;
+    this.input = ins;
     this.others = streams;
     this.out = NO as Stream<Array<any>>;
     this.ils = [];
@@ -97,14 +97,14 @@ export class SampleCombineOperator<T> implements Operator<T, Array<any>> {
       vals[i] = NO;
       s[i]._add(new SampleCombineListener<any>(i, this));
     }
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void {
     const s = this.others;
     const n = s.length;
     const ils = this.ils;
-    this.ins._remove(this);
+    this.input._remove(this);
     for (let i = 0; i < n; i++) {
       s[i]._remove(ils[i]);
     }

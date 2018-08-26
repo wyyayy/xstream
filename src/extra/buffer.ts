@@ -28,7 +28,7 @@ class BufferOperator<T> implements Operator<T, Array<T>> {
   private sil: InternalListener<any>;
   private acc: Array<T> = [];
 
-  constructor(public s: Stream<any>, public ins: Stream<T>)
+  constructor(public s: Stream<any>, public input: Stream<T>)
   {
   }
 
@@ -44,7 +44,7 @@ class BufferOperator<T> implements Operator<T, Array<T>> {
   _start(out: Stream<Array<T>>): void
   {
     this.out = out;
-    this.ins._add(this);
+    this.input._add(this);
     this.sil = new SeparatorIL(out, this);
     this.s._add(this.sil);
   }
@@ -52,7 +52,7 @@ class BufferOperator<T> implements Operator<T, Array<T>> {
   _stop(): void
   {
     this.flush();
-    this.ins._remove(this);
+    this.input._remove(this);
     this.out = null as any;
     this.s._remove(this.sil);
     this.sil = NO_IL;

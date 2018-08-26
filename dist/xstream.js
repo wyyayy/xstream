@@ -282,7 +282,7 @@ var Periodic =  (function () {
 var Debug =  (function () {
     function Debug(ins, arg) {
         this.type = 'debug';
-        this.ins = ins;
+        this.input = ins;
         this.out = NO;
         this.s = noop;
         this.l = '';
@@ -293,10 +293,10 @@ var Debug =  (function () {
     }
     Debug.prototype._start = function (out) {
         this.out = out;
-        this.ins._add(this);
+        this.input._add(this);
     };
     Debug.prototype._stop = function () {
-        this.ins._remove(this);
+        this.input._remove(this);
         this.out = NO;
     };
     Debug.prototype._n = function (t) {
@@ -335,7 +335,7 @@ var Debug =  (function () {
 var Drop =  (function () {
     function Drop(max, ins) {
         this.type = 'drop';
-        this.ins = ins;
+        this.input = ins;
         this.out = NO;
         this.max = max;
         this.dropped = 0;
@@ -343,10 +343,10 @@ var Drop =  (function () {
     Drop.prototype._start = function (out) {
         this.out = out;
         this.dropped = 0;
-        this.ins._add(this);
+        this.input._add(this);
     };
     Drop.prototype._stop = function () {
-        this.ins._remove(this);
+        this.input._remove(this);
         this.out = NO;
     };
     Drop.prototype._n = function (t) {
@@ -386,24 +386,25 @@ var EndWhenListener =  (function () {
     };
     return EndWhenListener;
 }());
+
 var EndWhen =  (function () {
-    function EndWhen(o, ins) {
+    function EndWhen(evt, ins) {
         this.type = 'endWhen';
-        this.ins = ins;
+        this.input = ins;
         this.out = NO;
-        this.o = o;
-        this.oil = NO_IL;
+        this.evt = evt;
+        this.evtListener = NO_IL;
     }
     EndWhen.prototype._start = function (out) {
         this.out = out;
-        this.o._add(this.oil = new EndWhenListener(out, this));
-        this.ins._add(this);
+        this.evt._add(this.evtListener = new EndWhenListener(out, this));
+        this.input._add(this);
     };
     EndWhen.prototype._stop = function () {
-        this.ins._remove(this);
-        this.o._remove(this.oil);
+        this.input._remove(this);
+        this.evt._remove(this.evtListener);
         this.out = NO;
-        this.oil = NO_IL;
+        this.evtListener = NO_IL;
     };
     EndWhen.prototype.end = function () {
         var u = this.out;
@@ -431,16 +432,16 @@ var EndWhen =  (function () {
 var Filter =  (function () {
     function Filter(passes, ins) {
         this.type = 'filter';
-        this.ins = ins;
+        this.input = ins;
         this.out = NO;
         this.f = passes;
     }
     Filter.prototype._start = function (out) {
         this.out = out;
-        this.ins._add(this);
+        this.input._add(this);
     };
     Filter.prototype._stop = function () {
-        this.ins._remove(this);
+        this.input._remove(this);
         this.out = NO;
     };
     Filter.prototype._n = function (t) {
@@ -486,7 +487,7 @@ var FlattenListener =  (function () {
 var Flatten =  (function () {
     function Flatten(ins) {
         this.type = 'flatten';
-        this.ins = ins;
+        this.input = ins;
         this.out = NO;
         this.open = true;
         this.inner = NO;
@@ -497,10 +498,10 @@ var Flatten =  (function () {
         this.open = true;
         this.inner = NO;
         this.il = NO_IL;
-        this.ins._add(this);
+        this.input._add(this);
     };
     Flatten.prototype._stop = function () {
-        this.ins._remove(this);
+        this.input._remove(this);
         if (this.inner !== NO)
             this.inner._remove(this.il);
         this.out = NO;
@@ -540,7 +541,7 @@ var Fold =  (function () {
     function Fold(f, seed, ins) {
         var _this = this;
         this.type = 'fold';
-        this.ins = ins;
+        this.input = ins;
         this.out = NO;
         this.f = function (t) { return f(_this.acc, t); };
         this.acc = this.seed = seed;
@@ -549,10 +550,10 @@ var Fold =  (function () {
         this.out = out;
         this.acc = this.seed;
         out._n(this.acc);
-        this.ins._add(this);
+        this.input._add(this);
     };
     Fold.prototype._stop = function () {
-        this.ins._remove(this);
+        this.input._remove(this);
         this.out = NO;
         this.acc = this.seed;
     };
@@ -582,7 +583,7 @@ var Fold =  (function () {
 var Last =  (function () {
     function Last(ins) {
         this.type = 'last';
-        this.ins = ins;
+        this.input = ins;
         this.out = NO;
         this.has = false;
         this.val = NO;
@@ -590,10 +591,10 @@ var Last =  (function () {
     Last.prototype._start = function (out) {
         this.out = out;
         this.has = false;
-        this.ins._add(this);
+        this.input._add(this);
     };
     Last.prototype._stop = function () {
-        this.ins._remove(this);
+        this.input._remove(this);
         this.out = NO;
         this.val = NO;
     };
@@ -623,16 +624,16 @@ var Last =  (function () {
 var MapOp =  (function () {
     function MapOp(project, ins) {
         this.type = 'map';
-        this.ins = ins;
+        this.input = ins;
         this.out = NO;
         this.f = project;
     }
     MapOp.prototype._start = function (out) {
         this.out = out;
-        this.ins._add(this);
+        this.input._add(this);
     };
     MapOp.prototype._stop = function () {
-        this.ins._remove(this);
+        this.input._remove(this);
         this.out = NO;
     };
     MapOp.prototype._n = function (t) {
@@ -677,16 +678,16 @@ var Remember =  (function () {
 var ReplaceError =  (function () {
     function ReplaceError(replacer, ins) {
         this.type = 'replaceError';
-        this.ins = ins;
+        this.input = ins;
         this.out = NO;
         this.f = replacer;
     }
     ReplaceError.prototype._start = function (out) {
         this.out = out;
-        this.ins._add(this);
+        this.input._add(this);
     };
     ReplaceError.prototype._stop = function () {
-        this.ins._remove(this);
+        this.input._remove(this);
         this.out = NO;
     };
     ReplaceError.prototype._n = function (t) {
@@ -700,8 +701,8 @@ var ReplaceError =  (function () {
         if (u === NO)
             return;
         try {
-            this.ins._remove(this);
-            (this.ins = this.f(err))._add(this);
+            this.input._remove(this);
+            (this.input = this.f(err))._add(this);
         }
         catch (e) {
             u._e(e);
@@ -736,7 +737,7 @@ var StartWith =  (function () {
 var Take =  (function () {
     function Take(max, ins) {
         this.type = 'take';
-        this.ins = ins;
+        this.input = ins;
         this.out = NO;
         this.max = max;
         this.taken = 0;
@@ -747,10 +748,10 @@ var Take =  (function () {
         if (this.max <= 0)
             out._c();
         else
-            this.ins._add(this);
+            this.input._add(this);
     };
     Take.prototype._stop = function () {
-        this.ins._remove(this);
+        this.input._remove(this);
         this.out = NO;
     };
     Take.prototype._n = function (t) {
@@ -779,6 +780,12 @@ var Take =  (function () {
     };
     return Take;
 }());
+var RxEvtType;
+(function (RxEvtType) {
+    RxEvtType[RxEvtType["Next"] = 0] = "Next";
+    RxEvtType[RxEvtType["Error"] = 1] = "Error";
+    RxEvtType[RxEvtType["Complete"] = 2] = "Complete";
+})(RxEvtType = exports.RxEvtType || (exports.RxEvtType = {}));
 var Stream =  (function () {
     function Stream(producer) {
         this._prod = producer || NO;
@@ -935,9 +942,6 @@ var Stream =  (function () {
         this._remove(listener);
     };
     
-    
-    
-    
     Stream.prototype.subscribe = function (listener) {
         if (typeof (listener) === 'object') {
             this.addListener(listener);
@@ -960,10 +964,15 @@ var Stream =  (function () {
         }
     };
     
-    
-    
-    
-    
+    Stream.prototype.subscribeOf = function (listener, evtType) {
+        if (evtType === void 0) { evtType = RxEvtType.Next; }
+        var temp = {};
+        temp.next = evtType === RxEvtType.Next ? listener : noop;
+        temp.error = evtType === RxEvtType.Error ? listener : noop;
+        temp.complete = evtType === RxEvtType.Complete ? listener : noop;
+        this.addListener(temp);
+        return new StreamSub(this, temp);
+    };
     
     Stream.prototype[symbol_observable_1.default] = function () {
         return this;
@@ -1057,7 +1066,7 @@ var Stream =  (function () {
     Stream.prototype.filter = function (passes) {
         var p = this._prod;
         if (p instanceof Filter)
-            return new Stream(new Filter(and(p.f, passes), p.ins));
+            return new Stream(new Filter(and(p.f, passes), p.input));
         return new Stream(new Filter(passes, this));
     };
     

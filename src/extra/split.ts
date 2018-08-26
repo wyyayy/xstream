@@ -26,18 +26,18 @@ export class SplitOperator<T> implements Operator<T, Stream<T>> {
   private sil: InternalListener<any> = NO_IL; // sil = separator InternalListener
 
   constructor(public s: Stream<any>, // s = separator
-              public ins: Stream<T>) {
+              public input: Stream<T>) {
   }
 
   _start(out: Stream<Stream<T>>): void {
     this.out = out;
     this.s._add(this.sil = new SeparatorIL<T>(out, this));
-    this.ins._add(this);
+    this.input._add(this);
     out._n(this.curr);
   }
 
   _stop(): void {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.s._remove(this.sil);
     this.curr = new Stream<T>();
     this.out = null as any;

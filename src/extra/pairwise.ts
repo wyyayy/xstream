@@ -6,16 +6,16 @@ class PairwiseOperator<T> implements Operator<T, [T, T]> {
   private has: boolean = false;
   public out: Stream<[T, T]> = null as any;
 
-  constructor(public ins: Stream<T>) {
+  constructor(public input: Stream<T>) {
   }
 
   _start(out: Stream<[T, T]>): void {
     this.out = out;
-    this.ins._add(this);
+    this.input._add(this);
   }
 
   _stop(): void {
-    this.ins._remove(this);
+    this.input._remove(this);
     this.has = false;
     this.out = null as any;
     this.val = null;
