@@ -674,13 +674,25 @@ class Drop<T> implements Operator<T, T> {
   }
 }
 
-class _EndWhenImpl<T> implements InternalListener<any> 
+class _EndWhenImpl<T> implements InternalListener<any>
 {
   private endWhen: EndWhen<T>;
+  private _evt: Stream<any>; /// Event stream indicate end.
 
-  constructor(op: EndWhen<T>)
+  constructor(host: EndWhen<T>, evt: Stream<any>)
   {
-    this.endWhen = op;
+    this.endWhen = host;
+    this._evt = evt;
+  }
+
+  start()
+  {
+    this._evt._add(this);
+  }
+
+  stop()
+  {
+    this._evt._remove(this);
   }
 
   _n()
@@ -700,38 +712,35 @@ class _EndWhenImpl<T> implements InternalListener<any>
 }
 
 ///... 它其实是一个Combinator，也就是将2个stream合并为一个Producer，从而形成一个新的Stream
-class EndWhen<T> implements Operator<T, T> 
+class EndWhen<T> implements Operator<T, T>
 {
   public type = 'endWhen';
-
+  /// Output的Producer就是这个对象
   public output: Stream<T>;
 
   public input: Stream<T>;
 
-  public evt: Stream<any>; /// Event stream indicate end.
-  private evtListener: InternalListener<any>; // oil = other InternalListener
+  private _impl: _EndWhenImpl<T>;
 
   constructor(evt: Stream<any>, input: Stream<T>)
   {
     this.input = input;
-    this.output = NO as Stream<T>;
-    this.evt = evt;
-    this.evtListener = NO_IL;
+    this.output = <Stream<T>>NO;
+    this._impl = new _EndWhenImpl(this, evt);
   }
 
   _start(out: Stream<T>): void
   {
     this.output = out;
-    this.evt._add(this.evtListener = new _EndWhenImpl(this));
+    this._impl.start();
     this.input._add(this);
   }
 
   _stop(): void
   {
-    this.input._remove(this);
-    this.evt._remove(this.evtListener);
-    this.output = NO as Stream<T>;
-    this.evtListener = NO_IL;
+    this.input._remove(this, true);
+    this._impl.stop();
+    this.output = <Stream<T>>NO;
   }
 
   end(): void
@@ -1187,7 +1196,7 @@ class Take<T> implements Operator<T, T> {
 
   _stop(): void
   {
-    this.input._remove(this);
+    this.input._remove(this, true);
     this.output = NO as Stream<T>;
   }
 
@@ -1322,7 +1331,7 @@ export class Stream<T> implements InternalListener<T>
     }
   }
 
-  _remove(il: InternalListener<T>): void
+  _remove(il: InternalListener<T>, stopImmediately: boolean = false): void
   {
     const ta = this._target;
     if (ta !== NO) return ta._remove(il);
@@ -1334,8 +1343,16 @@ export class Stream<T> implements InternalListener<T>
       if (this._prod !== NO && a.length <= 0)
       {
         this._err = NO;
-        this._stopID = setTimeout(() => this._stopNow());
-      } else if (a.length === 1)
+        if (stopImmediately)
+        {
+          this._stopNow();
+        }
+        else
+        {
+          this._stopID = setTimeout(() => this._stopNow());
+        }
+      }
+      else if (a.length === 1)
       {
         this._pruneCycles();
       }

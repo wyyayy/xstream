@@ -371,9 +371,16 @@ var Drop =  (function () {
     return Drop;
 }());
 var _EndWhenImpl =  (function () {
-    function _EndWhenImpl(op) {
-        this.endWhen = op;
+    function _EndWhenImpl(host, evt) {
+        this.endWhen = host;
+        this._evt = evt;
     }
+    _EndWhenImpl.prototype.start = function () {
+        this._evt._add(this);
+    };
+    _EndWhenImpl.prototype.stop = function () {
+        this._evt._remove(this);
+    };
     _EndWhenImpl.prototype._n = function () {
         this.endWhen.end();
     };
@@ -381,7 +388,7 @@ var _EndWhenImpl =  (function () {
         this.endWhen._e(err);
     };
     _EndWhenImpl.prototype._c = function () {
-        
+        this.endWhen.end();
     };
     return _EndWhenImpl;
 }());
@@ -391,19 +398,17 @@ var EndWhen =  (function () {
         this.type = 'endWhen';
         this.input = input;
         this.output = NO;
-        this.evt = evt;
-        this.evtListener = NO_IL;
+        this._impl = new _EndWhenImpl(this, evt);
     }
     EndWhen.prototype._start = function (out) {
         this.output = out;
-        this.evt._add(this.evtListener = new _EndWhenImpl(this));
+        this._impl.start();
         this.input._add(this);
     };
     EndWhen.prototype._stop = function () {
-        this.input._remove(this);
-        this.evt._remove(this.evtListener);
+        this.input._remove(this, true);
+        this._impl.stop();
         this.output = NO;
-        this.evtListener = NO_IL;
     };
     EndWhen.prototype.end = function () {
         if (this.output === NO)
@@ -747,7 +752,7 @@ var Take =  (function () {
             this.input._add(this);
     };
     Take.prototype._stop = function () {
-        this.input._remove(this);
+        this.input._remove(this, true);
         this.output = NO;
     };
     Take.prototype._n = function (t) {
@@ -877,8 +882,9 @@ var Stream =  (function () {
                 p._start(this);
         }
     };
-    Stream.prototype._remove = function (il) {
+    Stream.prototype._remove = function (il, stopImmediately) {
         var _this = this;
+        if (stopImmediately === void 0) { stopImmediately = false; }
         var ta = this._target;
         if (ta !== NO)
             return ta._remove(il);
@@ -888,7 +894,12 @@ var Stream =  (function () {
             a.splice(i, 1);
             if (this._prod !== NO && a.length <= 0) {
                 this._err = NO;
-                this._stopID = setTimeout(function () { return _this._stopNow(); });
+                if (stopImmediately) {
+                    this._stopNow();
+                }
+                else {
+                    this._stopID = setTimeout(function () { return _this._stopNow(); });
+                }
             }
             else if (a.length === 1) {
                 this._pruneCycles();
