@@ -2,46 +2,66 @@ import xs from '../src/index';
 import delay from '../src/extra/delay';
 import { Listener } from '..';
 
-class Tester
+
+class AnswerToLifeAndUniverseAndEverything
 {
-  public member1: number = 123;
-
-  public Start()
+  [Symbol.toPrimitive](hint: any)
   {
-    // let stream = xs.of(10, 20, 30, 40, 41, 42);
-
-    // stream.addListener({
-    //   next: x => 
-    //   {
-    //     console.log(this.member1);
-    //     //console.log(x);
-    //   },
-    //   error: err => console.error(err),
-    //   complete: () => console.log('done'),
-    // });
-
-    this.TestLambda(x =>
+    if (hint === 'string')
     {
-      console.log(this.member1);
-    });
-
-    this.TestLambda(this.TestFunc);
-
-  }
-
-  public TestFunc = ()=>
-  {
-    console.log(this.member1);
-  }
-
-  public TestLambda(func: (v: any) => void)
-  {
-    func(null);
+      return 'Like, 42, man';
+    } 
+    else if (hint === 'number')
+    {
+      return 42;
+    } 
+    else
+    {
+      // when pushed, most classes (except Date)
+      // default to returning a number primitive
+      return 42;
+    }
   }
 }
 
-let tester = new Tester();
-tester.Start();
+let answer = new AnswerToLifeAndUniverseAndEverything();
+console.log(-answer);
+console.log(Number(answer));
+console.log('' + answer);
+console.log(String(answer));
+
+
+function Test(p1: any, p2?: any):void
+{
+  console.log(arguments.length);
+
+}
+
+Test(1);
+Test(1, 2);
+
+class MyMatcher
+{
+  value: any;
+
+  constructor(value: any)
+  {
+    this.value = value;
+  }
+  [Symbol.match](string: any) 
+  {
+    let index = string.indexOf(this.value);
+    if (index === -1)
+    {
+      return null;
+    }
+    return [this.value];
+  }
+}
+let fooMatcher = 'foobar'.match(new MyMatcher('foo'));
+let barMatcher = 'foobar'.match(new MyMatcher('bar'));
+
+//assert.deepEqual(spreadableTest, [1, 2, 3, 4, <Collection>]);
 
 // let producer = 
 // {
@@ -64,3 +84,24 @@ tester.Start();
 //     {
 //         console.log(x);
 //     }});
+
+/// --- Override for of with Symbol.iterator
+// class Collection 
+// {
+//     *[Symbol.iterator]()
+//     {
+//         let i = 0;
+//         while (this[i] !== undefined)
+//         {
+//             yield this[i];
+//             ++i;
+//         }
+//     }
+// }
+// let myCollection = new Collection();
+// myCollection[0] = 1;
+// myCollection[1] = 2;
+// for (let value of myCollection)
+// {
+//     console.log(value); // 1, then 2
+// }

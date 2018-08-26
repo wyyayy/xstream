@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
+    "downlevelIteration": true,
     "experimentalDecorators": true,
     "removeComments": false,
     "preserveConstEnums": true,
-    "inlineSourceMap": true,
-    "inlineSources": true,
+    //"inlineSourceMap": true,
+    "sourceMap": true,
+    "inlineSources": false,
     "declaration": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -13,7 +15,7 @@
     "noEmitHelpers": false,
     "target": "ES5",
     "outDir": "./",
-    "lib": [ "dom", "es5", "es2015.promise", "esnext"],
+    "lib": [ "dom", "es5", "es2015.promise", "esnext", "es2015.iterable"],
   },
   "formatCodeOptions": {
     "indentSize": 2,
@@ -37,7 +39,7 @@
     "src/extra/tween.ts",
     "src/index.ts",
 
-    "examples/Test2.ts",
+    //"examples/Test2.ts",
   ],
 
   "filesGlob": [

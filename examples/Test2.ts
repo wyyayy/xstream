@@ -1,89 +1,52 @@
-import xs from '../src/index';
+import xs, { RxEvtType } from '../src/index';
+import { Subscription } from "../src/index";
 import delay from '../src/extra/delay';
 
+//let stream = xs.periodic(500).endWhen(xs.periodic(2100).take(1));
+let stream = xs.periodic(500).endWhen(xs.periodic(2100));
+//let stream = xs.periodic(500).take(4);
+//let stream = xs.of(10, 20, 30, 40);
 
-function log(target: any, key: any, descriptor: any)
-{
-    console.log(`${key} was called!`);
-}
+let subscription: Subscription;
 
-class P 
+let listener =
 {
-    @log
-    foo()
+    next: (x: any) => 
     {
-        console.log("dddd");
+        console.log(x);
+        // if (x === 2)
+        // {
+        //     console.log("reset");
+        //     let temp = stream.subscribe(listener);
+        //     subscription.unsubscribe();
+        //     subscription = temp;
+        // }
+    },
+    complete: () =>
+    {
+        console.log("complete");
+        stream.subscribe(listener);
+        let a = 0;
+        a++;
     }
-}
-const p = new P();
-p.foo();
+};
 
-// printed to console :
-// foo was called!
-// Do something
+subscription = stream.subscribe(listener);
 
-
-
-let sym1 = Symbol();
-let sym2 = Symbol();
-let obj: any = {};
-obj[sym1] = 123;
-obj[sym2] = 456;
-console.log(obj[sym1]);
-console.log(obj[sym2]);
-
-
-let stream = xs.periodic(500)
-    .compose(delay(1000))
-    .filter(i => i % 2 === 0)
-    .map(i => i * i)
-    .endWhen(xs.periodic(5000).take(1));
-
-// So far, the stream is idle.
-// As soon as it gets its first listener, it starts executing.
-// stream.addListener({
-//     next: i => console.log(i),
-//     error: err => console.error(err),
-//     complete: () => console.log('completed'),
+// stream.subscribeOf((x: number) =>
+// {
+//     console.log(x);
 // });
 
-/// Subscribe onNext
-stream.subscribe((x: number) =>
-{
-    console.log(x);
-});
-
-/// Subscribe onComplete
-stream.subscribe(() =>
-{
-    console.log("--- End ---");
-});
-
-console.log("hahahha!");
-
-// function pluck<T, K extends keyof T>(o: T, names: K[]): T[K][]
+// /// Subscribe onComplete
+// stream.subscribeOf(() =>
 // {
-//     return names.map(n => o[n]);
-// }
+//     console.log("--- End ---");
 
-// interface Person
-// {
-//     name: string;
-//     age: number;
-// }
+//     stream.subscribeOf((x: number) =>
+//     {
+//         console.log(x);
+//     });
 
-// let person: Person = {
-//     name: 'Jarid',
-//     age: 35,
-// };
+// }, RxEvtType.Complete);
 
-// let props: string[] = pluck(person, ['name']);
-
-// console.log(props);
-
-// function stepTo(value: 1 | 2 | 3 | 4)
-// {
-//     console.log(value);
-// }
-
-// stepTo(2);

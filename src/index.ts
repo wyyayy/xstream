@@ -1217,6 +1217,13 @@ class Take<T> implements Operator<T, T> {
   }
 }
 
+export enum RxEvtType
+{
+  Next,
+  Error,
+  Complete,
+}
+
 export class Stream<T> implements InternalListener<T> 
 {
   public _prod: InternalProducer<T>;
@@ -1392,11 +1399,6 @@ export class Stream<T> implements InternalListener<T>
     this._remove(listener as InternalListener<T>);
   }
 
-  // subscribe(listener: Partial<Listener<T>> 
-  //   | ((onNext: T) => void) 
-  //   | ((onEnd:void) => void)): Subscription
-
-
   /**
    * Adds a Listener to the Stream returning a Subscription to remove that
    * listener.
@@ -1435,11 +1437,28 @@ export class Stream<T> implements InternalListener<T>
     }
   }
 
-  // subscribe(listener: Partial<Listener<T>>): Subscription
-  // {
-  //   this.addListener(listener);
-  //   return new StreamSub<T>(this, listener as InternalListener<T>);
-  // }
+  /**
+   * Adds a Listener to the Stream returning a Subscription to remove that
+   * listener.
+   *
+   * @param {Listener} listener, can be a next callback or error callback or complete callback.
+   * @param {RxEvtType} evtType, specifiy which event need to be subscribed.
+   * @returns {Subscription}
+   */  
+  subscribeOf(listener: ((next: T) => void) 
+                    | ((err: any)=> void)
+                    | (()=> void)
+        , evtType: RxEvtType = RxEvtType.Next)
+  {
+    let temp = {} as Partial<Listener<T>>;
+
+    temp.next = evtType === RxEvtType.Next? listener : noop;
+    temp.error = evtType === RxEvtType.Error? listener : noop;
+    temp.complete = evtType === RxEvtType.Complete? listener as (() => void) : noop;
+
+    this.addListener(temp);
+    return new StreamSub<T>(this, temp as InternalListener<T>);
+  }
 
   /**
    * Add interop between most.js and RxJS 5

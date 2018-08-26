@@ -23,4 +23,22 @@ console.log(ret);
 //let keys: keyof IMap<number> = 1; // string
 //let value: IMap<number>['foo'] = 111; // number
 
+// function pluck<T, K extends keyof T>(o: T, names: K[]): T[K][]
+// {
+//     return names.map(n => o[n]);
+// }
 
+// interface Person
+// {
+//     name: string;
+//     age: number;
+// }
+
+// let person: Person = {
+//     name: 'Jarid',
+//     age: 35,
+// };
+
+// let props: string[] = pluck(person, ['name']);
+
+// console.log(props);
