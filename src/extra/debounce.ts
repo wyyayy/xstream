@@ -2,7 +2,7 @@ import {Operator, Stream, NO} from '../index';
 
 class DebounceOperator<T> implements Operator<T, T> {
   public type = 'debounce';
-  public out: Stream<T> = null as any;
+  public output: Stream<T> = null as any;
   private id: any = null;
   private t: any = NO;
 
@@ -11,13 +11,13 @@ class DebounceOperator<T> implements Operator<T, T> {
   }
 
   _start(out: Stream<T>): void {
-    this.out = out;
+    this.output = out;
     this.input._add(this);
   }
 
   _stop(): void {
     this.input._remove(this);
-    this.out = null as any;
+    this.output = null as any;
     this.id = null;
   }
 
@@ -30,7 +30,7 @@ class DebounceOperator<T> implements Operator<T, T> {
   }
 
   _n(t: T) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     this.clearInterval();
     this.t = t;
@@ -42,14 +42,14 @@ class DebounceOperator<T> implements Operator<T, T> {
   }
 
   _e(err: any) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     this.clearInterval();
     u._e(err);
   }
 
   _c() {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     this.clearInterval();
     if (this.t !== NO) u._n(this.t);

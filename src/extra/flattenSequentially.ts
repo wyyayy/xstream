@@ -25,11 +25,11 @@ export class FlattenSeqOperator<T> implements Operator<Stream<T>, T> {
   private active: Stream<T> | null;
   private activeIL: FSInner<T> | null;
   private seq: Array<Stream<T>>;
-  public out: Stream<T>;
+  public output: Stream<T>;
 
   constructor(ins: Stream<Stream<T>>) {
     this.input = ins;
-    this.out = null as any;
+    this.output = null as any;
     this.open = true;
     this.active = null;
     this.activeIL = null;
@@ -37,7 +37,7 @@ export class FlattenSeqOperator<T> implements Operator<Stream<T>, T> {
   }
 
   _start(out: Stream<T>): void {
-    this.out = out;
+    this.output = out;
     this.open = true;
     this.active = null;
     this.activeIL = new FSInner(out, this);
@@ -54,7 +54,7 @@ export class FlattenSeqOperator<T> implements Operator<Stream<T>, T> {
     this.active = null;
     this.activeIL = null;
     this.seq = [];
-    this.out = null as any;
+    this.output = null as any;
   }
 
   less(): void {
@@ -64,12 +64,12 @@ export class FlattenSeqOperator<T> implements Operator<Stream<T>, T> {
       this._n(seq.shift() as Stream<T>);
     }
     if (!this.open && !this.active) {
-      this.out._c();
+      this.output._c();
     }
   }
 
   _n(s: Stream<T>) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     if (this.active) {
       this.seq.push(s);
@@ -80,13 +80,13 @@ export class FlattenSeqOperator<T> implements Operator<Stream<T>, T> {
   }
 
   _e(err: any) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     u._e(err);
   }
 
   _c() {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     this.open = false;
     if (!this.active && this.seq.length === 0) {

@@ -46,7 +46,7 @@ describe('Stream.prototype.map', () => {
     stream.addListener({
       next: (x: number) => {
         assert.strictEqual(x, expected.shift());
-        assert.strictEqual(stream['_prod']['out'], stream);
+        assert.strictEqual(stream['_prod']['output'], stream);
       },
       error: (err: any) => done(err),
       complete: () => {
@@ -55,7 +55,7 @@ describe('Stream.prototype.map', () => {
     });
 
     assert.strictEqual(completeCalled, true);
-    assert.strictEqual(JSON.stringify(stream['_prod']['out']), '{}');
+    assert.strictEqual(JSON.stringify(stream['_prod']['output']), '{}');
     done();
   });
 
@@ -83,7 +83,7 @@ describe('Stream.prototype.map', () => {
     stream.addListener({
       next: (x: number) => {
         assert.strictEqual(x, expected.shift());
-        assert.strictEqual(stream['_prod']['out'], stream);
+        assert.strictEqual(stream['_prod']['output'], stream);
       },
       error: (err: any) => {
         errorCalled = true;
@@ -95,7 +95,7 @@ describe('Stream.prototype.map', () => {
 
     assert.strictEqual(errorCalled, true);
     assert.strictEqual(expected.length, 0);
-    assert.strictEqual(JSON.stringify(stream['_prod']['out']), '{}');
+    assert.strictEqual(JSON.stringify(stream['_prod']['output']), '{}');
     done();
   });
 

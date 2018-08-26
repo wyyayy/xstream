@@ -1,16 +1,16 @@
 import {Operator, Stream, OutSender, InternalListener} from '../index';
 
 class FCIL<T> implements InternalListener<T>, OutSender<T> {
-  constructor(public out: Stream<T>,
+  constructor(public output: Stream<T>,
               private op: FlattenConcOperator<T>) {
   }
 
   _n(t: T) {
-    this.out._n(t);
+    this.output._n(t);
   }
 
   _e(err: any) {
-    this.out._e(err);
+    this.output._e(err);
   }
 
   _c() {
@@ -21,39 +21,39 @@ class FCIL<T> implements InternalListener<T>, OutSender<T> {
 export class FlattenConcOperator<T> implements Operator<Stream<T>, T> {
   public type = 'flattenConcurrently';
   private active: number = 1; // number of outers and inners that have not yet ended
-  public out: Stream<T> = null as any;
+  public output: Stream<T> = null as any;
 
   constructor(public input: Stream<Stream<T>>) {
   }
 
   _start(out: Stream<T>): void {
-    this.out = out;
+    this.output = out;
     this.input._add(this);
   }
 
   _stop(): void {
     this.input._remove(this);
     this.active = 1;
-    this.out = null as any;
+    this.output = null as any;
   }
 
   less(): void {
     if (--this.active === 0) {
-      const u = this.out;
+      const u = this.output;
       if (!u) return;
       u._c();
     }
   }
 
   _n(s: Stream<T>) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     this.active++;
     s._add(new FCIL(u, this));
   }
 
   _e(err: any) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     u._e(err);
   }

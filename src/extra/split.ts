@@ -1,7 +1,7 @@
 import {Operator, InternalListener, Stream, OutSender, NO_IL} from '../index';
 
 class SeparatorIL<T> implements InternalListener<any>, OutSender<Stream<T>> {
-  constructor(public out: Stream<Stream<T>>,
+  constructor(public output: Stream<Stream<T>>,
               private op: SplitOperator<T>) {
   }
 
@@ -10,19 +10,19 @@ class SeparatorIL<T> implements InternalListener<any>, OutSender<Stream<T>> {
   }
 
   _e(err: any) {
-    this.out._e(err);
+    this.output._e(err);
   }
 
   _c() {
     this.op.curr._c();
-    this.out._c();
+    this.output._c();
   }
 }
 
 export class SplitOperator<T> implements Operator<T, Stream<T>> {
   public type = 'split';
   public curr: Stream<T> = new Stream<T>();
-  public out: Stream<Stream<T>> = null as any;
+  public output: Stream<Stream<T>> = null as any;
   private sil: InternalListener<any> = NO_IL; // sil = separator InternalListener
 
   constructor(public s: Stream<any>, // s = separator
@@ -30,7 +30,7 @@ export class SplitOperator<T> implements Operator<T, Stream<T>> {
   }
 
   _start(out: Stream<Stream<T>>): void {
-    this.out = out;
+    this.output = out;
     this.s._add(this.sil = new SeparatorIL<T>(out, this));
     this.input._add(this);
     out._n(this.curr);
@@ -40,28 +40,28 @@ export class SplitOperator<T> implements Operator<T, Stream<T>> {
     this.input._remove(this);
     this.s._remove(this.sil);
     this.curr = new Stream<T>();
-    this.out = null as any;
+    this.output = null as any;
     this.sil = NO_IL;
   }
 
   up(): void {
     this.curr._c();
-    this.out._n(this.curr = new Stream<T>());
+    this.output._n(this.curr = new Stream<T>());
   }
 
   _n(t: T) {
-    if (!this.out) return;
+    if (!this.output) return;
     this.curr._n(t);
   }
 
   _e(err: any) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     u._e(err);
   }
 
   _c() {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     this.curr._c();
     u._c();

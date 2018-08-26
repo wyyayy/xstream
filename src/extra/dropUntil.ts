@@ -1,7 +1,7 @@
 import {Operator, InternalListener, Stream, OutSender, NO_IL} from '../index';
 
 class OtherIL<T> implements InternalListener<any>, OutSender<T> {
-  constructor(public out: Stream<T>,
+  constructor(public output: Stream<T>,
               private op: DropUntilOperator<T>) {
   }
 
@@ -10,7 +10,7 @@ class OtherIL<T> implements InternalListener<any>, OutSender<T> {
   }
 
   _e(err: any) {
-    this.out._e(err);
+    this.output._e(err);
   }
 
   _c() {}
@@ -18,7 +18,7 @@ class OtherIL<T> implements InternalListener<any>, OutSender<T> {
 
 export class DropUntilOperator<T> implements Operator<T, T> {
   public type = 'dropUntil';
-  public out: Stream<T> = null as any;
+  public output: Stream<T> = null as any;
   private oil: InternalListener<any> = NO_IL; // oil = other InternalListener
   private on: boolean = false;
 
@@ -27,7 +27,7 @@ export class DropUntilOperator<T> implements Operator<T, T> {
   }
 
   _start(out: Stream<T>): void {
-    this.out = out;
+    this.output = out;
     this.o._add(this.oil = new OtherIL(out, this));
     this.input._add(this);
   }
@@ -35,7 +35,7 @@ export class DropUntilOperator<T> implements Operator<T, T> {
   _stop(): void {
     this.input._remove(this);
     this.o._remove(this.oil);
-    this.out = null as any;
+    this.output = null as any;
     this.oil = NO_IL;
   }
 
@@ -46,20 +46,20 @@ export class DropUntilOperator<T> implements Operator<T, T> {
   }
 
   _n(t: T) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     if (!this.on) return;
     u._n(t);
   }
 
   _e(err: any) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     u._e(err);
   }
 
   _c() {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     this._stop();
     u._c();

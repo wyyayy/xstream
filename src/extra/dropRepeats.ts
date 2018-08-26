@@ -3,7 +3,7 @@ const empty = {};
 
 export class DropRepeatsOperator<T> implements Operator<T, T> {
   public type = 'dropRepeats';
-  public out: Stream<T> = null as any;
+  public output: Stream<T> = null as any;
   public isEq: (x: T, y: T) => boolean;
   private v: T = <any> empty;
 
@@ -13,18 +13,18 @@ export class DropRepeatsOperator<T> implements Operator<T, T> {
   }
 
   _start(out: Stream<T>): void {
-    this.out = out;
+    this.output = out;
     this.input._add(this);
   }
 
   _stop(): void {
     this.input._remove(this);
-    this.out = null as any;
+    this.output = null as any;
     this.v = empty as any;
   }
 
   _n(t: T) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     const v = this.v;
     if (v !== empty && this.isEq(t, v)) return;
@@ -33,13 +33,13 @@ export class DropRepeatsOperator<T> implements Operator<T, T> {
   }
 
   _e(err: any) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     u._e(err);
   }
 
   _c() {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     u._c();
   }

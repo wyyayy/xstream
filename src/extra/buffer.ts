@@ -1,7 +1,7 @@
 import { Operator, Stream, InternalListener, OutSender, NO_IL } from '../index';
 
 class SeparatorIL<T> implements InternalListener<any>, OutSender<Array<T>> {
-  constructor(public out: Stream<Array<T>>, private op: BufferOperator<T>)
+  constructor(public output: Stream<Array<T>>, private op: BufferOperator<T>)
   {
   }
 
@@ -12,19 +12,19 @@ class SeparatorIL<T> implements InternalListener<any>, OutSender<Array<T>> {
 
   _e(err: any)
   {
-    this.out._e(err);
+    this.output._e(err);
   }
 
   _c()
   {
     this.op.flush();
-    this.out._c();
+    this.output._c();
   }
 }
 
 class BufferOperator<T> implements Operator<T, Array<T>> {
   public type = 'buffer';
-  public out: Stream<Array<T>> = null as any;
+  public output: Stream<Array<T>> = null as any;
   private sil: InternalListener<any>;
   private acc: Array<T> = [];
 
@@ -36,14 +36,14 @@ class BufferOperator<T> implements Operator<T, Array<T>> {
   {
     if (this.acc.length > 0)
     {
-      this.out._n(this.acc);
+      this.output._n(this.acc);
       this.acc = [];
     }
   }
 
   _start(out: Stream<Array<T>>): void
   {
-    this.out = out;
+    this.output = out;
     this.input._add(this);
     this.sil = new SeparatorIL(out, this);
     this.s._add(this.sil);
@@ -53,7 +53,7 @@ class BufferOperator<T> implements Operator<T, Array<T>> {
   {
     this.flush();
     this.input._remove(this);
-    this.out = null as any;
+    this.output = null as any;
     this.s._remove(this.sil);
     this.sil = NO_IL;
   }
@@ -65,14 +65,14 @@ class BufferOperator<T> implements Operator<T, Array<T>> {
 
   _e(err: any)
   {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     u._e(err);
   }
 
   _c()
   {
-    const out = this.out;
+    const out = this.output;
     if (!out) return;
     this.flush();
     out._c();

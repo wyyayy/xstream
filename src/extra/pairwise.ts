@@ -4,25 +4,25 @@ class PairwiseOperator<T> implements Operator<T, [T, T]> {
   public type = 'pairwise';
   private val: T | null = null;
   private has: boolean = false;
-  public out: Stream<[T, T]> = null as any;
+  public output: Stream<[T, T]> = null as any;
 
   constructor(public input: Stream<T>) {
   }
 
   _start(out: Stream<[T, T]>): void {
-    this.out = out;
+    this.output = out;
     this.input._add(this);
   }
 
   _stop(): void {
     this.input._remove(this);
     this.has = false;
-    this.out = null as any;
+    this.output = null as any;
     this.val = null;
   }
 
   _n(t: T) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     if (this.has) {
       const prev = this.val;
@@ -35,13 +35,13 @@ class PairwiseOperator<T> implements Operator<T, [T, T]> {
   }
 
   _e(err: any) {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     u._e(err);
   }
 
   _c() {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     u._c();
   }

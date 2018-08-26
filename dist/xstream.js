@@ -101,11 +101,11 @@ var Merge =  (function () {
     function Merge(insArr) {
         this.type = 'merge';
         this.insArr = insArr;
-        this.out = NO;
+        this.output = NO;
         this.ac = 0;
     }
     Merge.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         var s = this.insArr;
         var L = s.length;
         this.ac = L;
@@ -117,23 +117,23 @@ var Merge =  (function () {
         var L = s.length;
         for (var i = 0; i < L; i++)
             s[i]._remove(this);
-        this.out = NO;
+        this.output = NO;
     };
     Merge.prototype._n = function (t) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._n(t);
     };
     Merge.prototype._e = function (err) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._e(err);
     };
     Merge.prototype._c = function () {
         if (--this.ac <= 0) {
-            var u = this.out;
+            var u = this.output;
             if (u === NO)
                 return;
             u._c();
@@ -144,12 +144,12 @@ var Merge =  (function () {
 var CombineListener =  (function () {
     function CombineListener(i, out, p) {
         this.i = i;
-        this.out = out;
+        this.output = out;
         this.p = p;
         p.ils.push(this);
     }
     CombineListener.prototype._n = function (t) {
-        var p = this.p, out = this.out;
+        var p = this.p, out = this.output;
         if (out === NO)
             return;
         if (p.up(t, this.i)) {
@@ -162,17 +162,17 @@ var CombineListener =  (function () {
         }
     };
     CombineListener.prototype._e = function (err) {
-        var out = this.out;
+        var out = this.output;
         if (out === NO)
             return;
         out._e(err);
     };
     CombineListener.prototype._c = function () {
         var p = this.p;
-        if (p.out === NO)
+        if (p.output === NO)
             return;
         if (--p.Nc === 0)
-            p.out._c();
+            p.output._c();
     };
     return CombineListener;
 }());
@@ -180,7 +180,7 @@ var Combine =  (function () {
     function Combine(insArr) {
         this.type = 'combine';
         this.insArr = insArr;
-        this.out = NO;
+        this.output = NO;
         this.ils = [];
         this.Nc = this.Nn = 0;
         this.vals = [];
@@ -192,7 +192,7 @@ var Combine =  (function () {
         return Nn === 0;
     };
     Combine.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         var s = this.insArr;
         var n = this.Nc = this.Nn = s.length;
         var vals = this.vals = new Array(n);
@@ -213,7 +213,7 @@ var Combine =  (function () {
         var ils = this.ils;
         for (var i = 0; i < n; i++)
             s[i]._remove(ils[i]);
-        this.out = NO;
+        this.output = NO;
         this.ils = [];
         this.vals = [];
     };
@@ -283,7 +283,7 @@ var Debug =  (function () {
     function Debug(ins, arg) {
         this.type = 'debug';
         this.input = ins;
-        this.out = NO;
+        this.output = NO;
         this.s = noop;
         this.l = '';
         if (typeof arg === 'string')
@@ -292,15 +292,15 @@ var Debug =  (function () {
             this.s = arg;
     }
     Debug.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         this.input._add(this);
     };
     Debug.prototype._stop = function () {
         this.input._remove(this);
-        this.out = NO;
+        this.output = NO;
     };
     Debug.prototype._n = function (t) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         var s = this.s, l = this.l;
@@ -319,13 +319,13 @@ var Debug =  (function () {
         u._n(t);
     };
     Debug.prototype._e = function (err) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._e(err);
     };
     Debug.prototype._c = function () {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._c();
@@ -336,34 +336,34 @@ var Drop =  (function () {
     function Drop(max, ins) {
         this.type = 'drop';
         this.input = ins;
-        this.out = NO;
+        this.output = NO;
         this.max = max;
         this.dropped = 0;
     }
     Drop.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         this.dropped = 0;
         this.input._add(this);
     };
     Drop.prototype._stop = function () {
         this.input._remove(this);
-        this.out = NO;
+        this.output = NO;
     };
     Drop.prototype._n = function (t) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         if (this.dropped++ >= this.max)
             u._n(t);
     };
     Drop.prototype._e = function (err) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._e(err);
     };
     Drop.prototype._c = function () {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._c();
@@ -388,41 +388,38 @@ var EndWhenListener =  (function () {
 }());
 
 var EndWhen =  (function () {
-    function EndWhen(evt, ins) {
+    function EndWhen(evt, input) {
         this.type = 'endWhen';
-        this.input = ins;
-        this.out = NO;
+        this.input = input;
+        this.output = NO;
         this.evt = evt;
         this.evtListener = NO_IL;
     }
     EndWhen.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         this.evt._add(this.evtListener = new EndWhenListener(out, this));
         this.input._add(this);
     };
     EndWhen.prototype._stop = function () {
         this.input._remove(this);
         this.evt._remove(this.evtListener);
-        this.out = NO;
+        this.output = NO;
         this.evtListener = NO_IL;
     };
     EndWhen.prototype.end = function () {
-        var u = this.out;
-        if (u === NO)
+        if (this.output === NO)
             return;
-        u._c();
+        this.output._c();
     };
     EndWhen.prototype._n = function (t) {
-        var u = this.out;
-        if (u === NO)
+        if (this.output === NO)
             return;
-        u._n(t);
+        this.output._n(t);
     };
     EndWhen.prototype._e = function (err) {
-        var u = this.out;
-        if (u === NO)
+        if (this.output === NO)
             return;
-        u._e(err);
+        this.output._e(err);
     };
     EndWhen.prototype._c = function () {
         this.end();
@@ -433,19 +430,19 @@ var Filter =  (function () {
     function Filter(passes, ins) {
         this.type = 'filter';
         this.input = ins;
-        this.out = NO;
+        this.output = NO;
         this.f = passes;
     }
     Filter.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         this.input._add(this);
     };
     Filter.prototype._stop = function () {
         this.input._remove(this);
-        this.out = NO;
+        this.output = NO;
     };
     Filter.prototype._n = function (t) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         var r = _try(this, t, u);
@@ -454,13 +451,13 @@ var Filter =  (function () {
         u._n(t);
     };
     Filter.prototype._e = function (err) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._e(err);
     };
     Filter.prototype._c = function () {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._c();
@@ -488,13 +485,13 @@ var Flatten =  (function () {
     function Flatten(ins) {
         this.type = 'flatten';
         this.input = ins;
-        this.out = NO;
+        this.output = NO;
         this.open = true;
         this.inner = NO;
         this.il = NO_IL;
     }
     Flatten.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         this.open = true;
         this.inner = NO;
         this.il = NO_IL;
@@ -504,20 +501,20 @@ var Flatten =  (function () {
         this.input._remove(this);
         if (this.inner !== NO)
             this.inner._remove(this.il);
-        this.out = NO;
+        this.output = NO;
         this.open = true;
         this.inner = NO;
         this.il = NO_IL;
     };
     Flatten.prototype.less = function () {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         if (!this.open && this.inner === NO)
             u._c();
     };
     Flatten.prototype._n = function (s) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         var _a = this, inner = _a.inner, il = _a.il;
@@ -526,7 +523,7 @@ var Flatten =  (function () {
         (this.inner = s)._add(this.il = new FlattenListener(u, this));
     };
     Flatten.prototype._e = function (err) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._e(err);
@@ -542,23 +539,23 @@ var Fold =  (function () {
         var _this = this;
         this.type = 'fold';
         this.input = ins;
-        this.out = NO;
+        this.output = NO;
         this.f = function (t) { return f(_this.acc, t); };
         this.acc = this.seed = seed;
     }
     Fold.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         this.acc = this.seed;
         out._n(this.acc);
         this.input._add(this);
     };
     Fold.prototype._stop = function () {
         this.input._remove(this);
-        this.out = NO;
+        this.output = NO;
         this.acc = this.seed;
     };
     Fold.prototype._n = function (t) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         var r = _try(this, t, u);
@@ -567,13 +564,13 @@ var Fold =  (function () {
         u._n(this.acc = r);
     };
     Fold.prototype._e = function (err) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._e(err);
     };
     Fold.prototype._c = function () {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._c();
@@ -584,18 +581,18 @@ var Last =  (function () {
     function Last(ins) {
         this.type = 'last';
         this.input = ins;
-        this.out = NO;
+        this.output = NO;
         this.has = false;
         this.val = NO;
     }
     Last.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         this.has = false;
         this.input._add(this);
     };
     Last.prototype._stop = function () {
         this.input._remove(this);
-        this.out = NO;
+        this.output = NO;
         this.val = NO;
     };
     Last.prototype._n = function (t) {
@@ -603,13 +600,13 @@ var Last =  (function () {
         this.val = t;
     };
     Last.prototype._e = function (err) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._e(err);
     };
     Last.prototype._c = function () {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         if (this.has) {
@@ -625,19 +622,19 @@ var MapOp =  (function () {
     function MapOp(project, ins) {
         this.type = 'map';
         this.input = ins;
-        this.out = NO;
+        this.output = NO;
         this.f = project;
     }
     MapOp.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         this.input._add(this);
     };
     MapOp.prototype._stop = function () {
         this.input._remove(this);
-        this.out = NO;
+        this.output = NO;
     };
     MapOp.prototype._n = function (t) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         var r = _try(this, t, u);
@@ -646,13 +643,13 @@ var MapOp =  (function () {
         u._n(r);
     };
     MapOp.prototype._e = function (err) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._e(err);
     };
     MapOp.prototype._c = function () {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._c();
@@ -679,25 +676,25 @@ var ReplaceError =  (function () {
     function ReplaceError(replacer, ins) {
         this.type = 'replaceError';
         this.input = ins;
-        this.out = NO;
+        this.output = NO;
         this.f = replacer;
     }
     ReplaceError.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         this.input._add(this);
     };
     ReplaceError.prototype._stop = function () {
         this.input._remove(this);
-        this.out = NO;
+        this.output = NO;
     };
     ReplaceError.prototype._n = function (t) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._n(t);
     };
     ReplaceError.prototype._e = function (err) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         try {
@@ -709,7 +706,7 @@ var ReplaceError =  (function () {
         }
     };
     ReplaceError.prototype._c = function () {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._c();
@@ -738,12 +735,12 @@ var Take =  (function () {
     function Take(max, ins) {
         this.type = 'take';
         this.input = ins;
-        this.out = NO;
+        this.output = NO;
         this.max = max;
         this.taken = 0;
     }
     Take.prototype._start = function (out) {
-        this.out = out;
+        this.output = out;
         this.taken = 0;
         if (this.max <= 0)
             out._c();
@@ -752,10 +749,10 @@ var Take =  (function () {
     };
     Take.prototype._stop = function () {
         this.input._remove(this);
-        this.out = NO;
+        this.output = NO;
     };
     Take.prototype._n = function (t) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         var m = ++this.taken;
@@ -767,13 +764,13 @@ var Take =  (function () {
         }
     };
     Take.prototype._e = function (err) {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._e(err);
     };
     Take.prototype._c = function () {
-        var u = this.out;
+        var u = this.output;
         if (u === NO)
             return;
         u._c();
@@ -914,10 +911,10 @@ var Stream =  (function () {
     Stream.prototype._hasNoSinks = function (x, trace) {
         if (trace.indexOf(x) !== -1)
             return true;
-        else if (x.out === this)
+        else if (x.output === this)
             return true;
-        else if (x.out && x.out !== NO)
-            return this._hasNoSinks(x.out, trace.concat(x));
+        else if (x.output && x.output !== NO)
+            return this._hasNoSinks(x.output, trace.concat(x));
         else if (x._ils) {
             for (var i = 0, N = x._ils.length; i < N; i++)
                 if (!this._hasNoSinks(x._ils[i], trace.concat(x)))

@@ -2,7 +2,7 @@ import { Operator, Stream } from '../index';
 
 class DelayOperator<T> implements Operator<T, T> {
   public type = 'delay';
-  public out: Stream<T> = null as any;
+  public output: Stream<T> = null as any;
 
   constructor(public dt: number,
     public input: Stream<T>)
@@ -11,19 +11,19 @@ class DelayOperator<T> implements Operator<T, T> {
 
   _start(out: Stream<T>): void
   {
-    this.out = out;
+    this.output = out;
     this.input._add(this);
   }
 
   _stop(): void
   {
     this.input._remove(this);
-    this.out = null as any;
+    this.output = null as any;
   }
 
   _n(t: T)
   {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     const id = setInterval(() =>
     {
@@ -34,7 +34,7 @@ class DelayOperator<T> implements Operator<T, T> {
 
   _e(err: any)
   {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     const id = setInterval(() =>
     {
@@ -45,7 +45,7 @@ class DelayOperator<T> implements Operator<T, T> {
 
   _c()
   {
-    const u = this.out;
+    const u = this.output;
     if (!u) return;
     const id = setInterval(() =>
     {

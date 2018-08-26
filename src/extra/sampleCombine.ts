@@ -57,7 +57,7 @@ export class SampleCombineListener<T> implements InternalListener<T> {
 
   _n(t: T): void {
     const p = this.p;
-    if (p.out === NO) return;
+    if (p.output === NO) return;
     p.up(t, this.i);
   }
 
@@ -74,7 +74,7 @@ export class SampleCombineOperator<T> implements Operator<T, Array<any>> {
   public type = 'sampleCombine';
   public input: Stream<T>;
   public others: Array<Stream<any>>;
-  public out: Stream<Array<any>>;
+  public output: Stream<Array<any>>;
   public ils: Array<SampleCombineListener<any>>;
   public Nn: number; // *N*umber of streams still to send *n*ext
   public vals: Array<any>;
@@ -82,14 +82,14 @@ export class SampleCombineOperator<T> implements Operator<T, Array<any>> {
   constructor(ins: Stream<T>, streams: Array<Stream<any>>) {
     this.input = ins;
     this.others = streams;
-    this.out = NO as Stream<Array<any>>;
+    this.output = NO as Stream<Array<any>>;
     this.ils = [];
     this.Nn = 0;
     this.vals = [];
   }
 
   _start(out: Stream<Array<any>>): void {
-    this.out = out;
+    this.output = out;
     const s = this.others;
     const n = this.Nn = s.length;
     const vals = this.vals = new Array(n);
@@ -108,26 +108,26 @@ export class SampleCombineOperator<T> implements Operator<T, Array<any>> {
     for (let i = 0; i < n; i++) {
       s[i]._remove(ils[i]);
     }
-    this.out = NO as Stream<Array<any>>;
+    this.output = NO as Stream<Array<any>>;
     this.vals = [];
     this.ils = [];
   }
 
   _n(t: T): void {
-    const out = this.out;
+    const out = this.output;
     if (out === NO) return;
     if (this.Nn > 0) return;
     out._n([t, ...this.vals]);
   }
 
   _e(err: any): void {
-    const out = this.out;
+    const out = this.output;
     if (out === NO) return;
     out._e(err);
   }
 
   _c(): void {
-    const out = this.out;
+    const out = this.output;
     if (out === NO) return;
     out._c();
   }
