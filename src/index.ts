@@ -674,29 +674,28 @@ class Drop<T> implements Operator<T, T> {
   }
 }
 
-class EndWhenListener<T> implements InternalListener<any> {
-  private out: Stream<T>;
-  private op: EndWhen<T>;
+class _EndWhenImpl<T> implements InternalListener<any> 
+{
+  private endWhen: EndWhen<T>;
 
-  constructor(out: Stream<T>, op: EndWhen<T>)
+  constructor(op: EndWhen<T>)
   {
-    this.out = out;
-    this.op = op;
+    this.endWhen = op;
   }
 
   _n()
   {
-    this.op.end();
+    this.endWhen.end();
   }
 
   _e(err: any)
   {
-    this.out._e(err);
+    this.endWhen._e(err);
   }
 
   _c()
   {
-    this.op.end();
+    this.endWhen.end();
   }
 }
 
@@ -723,7 +722,7 @@ class EndWhen<T> implements Operator<T, T>
   _start(out: Stream<T>): void
   {
     this.output = out;
-    this.evt._add(this.evtListener = new EndWhenListener(out, this));
+    this.evt._add(this.evtListener = new _EndWhenImpl(this));
     this.input._add(this);
   }
 

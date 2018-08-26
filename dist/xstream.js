@@ -370,21 +370,20 @@ var Drop =  (function () {
     };
     return Drop;
 }());
-var EndWhenListener =  (function () {
-    function EndWhenListener(out, op) {
-        this.out = out;
-        this.op = op;
+var _EndWhenImpl =  (function () {
+    function _EndWhenImpl(op) {
+        this.endWhen = op;
     }
-    EndWhenListener.prototype._n = function () {
-        this.op.end();
+    _EndWhenImpl.prototype._n = function () {
+        this.endWhen.end();
     };
-    EndWhenListener.prototype._e = function (err) {
-        this.out._e(err);
+    _EndWhenImpl.prototype._e = function (err) {
+        this.endWhen._e(err);
     };
-    EndWhenListener.prototype._c = function () {
-        this.op.end();
+    _EndWhenImpl.prototype._c = function () {
+        
     };
-    return EndWhenListener;
+    return _EndWhenImpl;
 }());
 
 var EndWhen =  (function () {
@@ -397,7 +396,7 @@ var EndWhen =  (function () {
     }
     EndWhen.prototype._start = function (out) {
         this.output = out;
-        this.evt._add(this.evtListener = new EndWhenListener(out, this));
+        this.evt._add(this.evtListener = new _EndWhenImpl(this));
         this.input._add(this);
     };
     EndWhen.prototype._stop = function () {
