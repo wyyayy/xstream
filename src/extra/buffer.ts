@@ -52,7 +52,7 @@ class BufferOperator<T> implements Operator<T, Array<T>> {
   _stop(): void
   {
     this.flush();
-    this.input._remove(this);
+    this.input._remove(this, true);
     this.output = null as any;
     this.s._remove(this.sil);
     this.sil = NO_IL;
