@@ -707,7 +707,7 @@ class _EndWhenImpl<T> implements InternalListener<any>
 
   _c()
   {
-    this.endWhen.end();
+    this.endWhen.end();    
   }
 }
 
@@ -715,7 +715,7 @@ class _EndWhenImpl<T> implements InternalListener<any>
 class EndWhen<T> implements Operator<T, T>
 {
   public type = 'endWhen';
-  /// Output的Producer就是这个对象
+  /// Output的Producer就是this
   public output: Stream<T>;
 
   public input: Stream<T>;
@@ -1179,9 +1179,9 @@ class Take<T> implements Operator<T, T> {
   public max: number;
   private taken: number;
 
-  constructor(max: number, ins: Stream<T>)
+  constructor(max: number, input: Stream<T>)
   {
-    this.input = ins;
+    this.input = input;
     this.output = NO as Stream<T>;
     this.max = max;
     this.taken = 0;

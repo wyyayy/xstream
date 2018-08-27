@@ -3,16 +3,18 @@ import { Subscription } from "../src/index";
 import delay from '../src/extra/delay';
 import buffer from '../src/extra/buffer';
 
-//let stream = xs.periodic(500).endWhen(xs.periodic(2100).take(1));
-let streamTemp = xs.periodic(500);
-streamTemp.subscribe(x => {});
-let stream = streamTemp.endWhen(xs.periodic(2100));
+let stream = xs.periodic(500).endWhen(xs.periodic(2100).take(1));
+//let stream = xs.periodic(500).endWhen(xs.periodic(2100));
+
+// let streamTemp = xs.periodic(500);
+// streamTemp.subscribe(x => {});
+// let stream = streamTemp.endWhen(xs.periodic(2100));
 
 /// xStream和rxjs的最大区别在于，xStream在Compose时，并没有copy一个input的state
 /// 这导致当compose后的stream被stop时，按说应该reset input的state，但实际上没有
-// let streamTemp = xs.periodic(100);
-// streamTemp.subscribe(x => console.log(x));
-// let stream = streamTemp.compose(buffer(xs.periodic(550))).take(4);
+//let streamTemp = xs.periodic(100);
+//streamTemp.subscribe(x => console.log(x));
+//let stream = streamTemp.compose(buffer(xs.periodic(550))).take(4);
 
 //let stream = xs.periodic(500).take(4);
 //let stream = xs.of(10, 20, 30, 40);
