@@ -1,6 +1,6 @@
 /// <reference types="mocha"/>
 /// <reference types="node" />
-import xs, {Stream, MemoryStream} from '../../src/index';
+import xs, {Stream, MemoryStream, RxEvtType} from '../../src/index';
 import delay from '../../src/extra/delay';
 import * as assert from 'assert';
 
@@ -26,7 +26,7 @@ describe('Stream.prototype.endWhen', () => {
   it('should complete the stream when another stream emits complete', (done: any) => {
     const source = xs.periodic(50);
     const other = xs.empty().compose(delay(220));
-    const stream = source.endWhen(other);
+    const stream = source.endWhen(other, RxEvtType.Complete);
     const expected = [0, 1, 2, 3];
 
     stream.addListener({

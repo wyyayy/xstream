@@ -736,9 +736,9 @@ var StartWith =  (function () {
     return StartWith;
 }());
 var Take =  (function () {
-    function Take(max, ins) {
+    function Take(max, input) {
         this.type = 'take';
-        this.input = ins;
+        this.input = input;
         this.output = NO;
         this.max = max;
         this.taken = 0;

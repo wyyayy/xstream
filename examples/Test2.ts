@@ -37,7 +37,9 @@ let listener =
     complete: () =>
     {
         console.log("complete");
-        stream.subscribe(listener);
+        setTimeout(()=>stream.subscribe(listener), 0);
+        //stream.subscribe(listener);
+        
         let a = 0;
         a++;
     }
@@ -45,10 +47,10 @@ let listener =
 
 subscription = stream.subscribe(listener);
 
-// stream.subscribeOf((x: number) =>
-// {
-//     console.log(x);
-// });
+stream.subscribeOf((x: number) =>
+{
+    console.log(x);
+});
 
 // /// Subscribe onComplete
 // stream.subscribeOf(() =>

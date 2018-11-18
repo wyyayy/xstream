@@ -6,6 +6,7 @@
   "jsRules": {},
   "rules": 
   {
+      "interface-over-type-literal":false,
       "space-before-function-paren":false,
       "forin":false,
       "typedef-whitespace":false,

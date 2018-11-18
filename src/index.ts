@@ -707,7 +707,7 @@ class _EndWhenImpl<T> implements InternalListener<any>
 
   _c()
   {
-    this.endWhen.end();    
+    this.endWhen.end();
   }
 }
 
@@ -738,7 +738,7 @@ class EndWhen<T> implements Operator<T, T>
 
   _stop(): void
   {
-    this.input._remove(this, true);
+    this.input._remove(this);
     this._impl.stop();
     this.output = <Stream<T>>NO;
   }
@@ -1196,7 +1196,7 @@ class Take<T> implements Operator<T, T> {
 
   _stop(): void
   {
-    this.input._remove(this, true);
+    this.input._remove(this);
     this.output = NO as Stream<T>;
   }
 
@@ -1331,7 +1331,7 @@ export class Stream<T> implements InternalListener<T>
     }
   }
 
-  _remove(il: InternalListener<T>, stopImmediately: boolean = false): void
+  _remove(il: InternalListener<T>): void
   {
     const ta = this._target;
     if (ta !== NO) return ta._remove(il);
@@ -1343,14 +1343,7 @@ export class Stream<T> implements InternalListener<T>
       if (this._prod !== NO && a.length <= 0)
       {
         this._err = NO;
-        if (stopImmediately)
-        {
-          this._stopNow();
-        }
-        else
-        {
-          this._stopID = setTimeout(() => this._stopNow());
-        }
+        this._stopID = setTimeout(() => this._stopNow());
       }
       else if (a.length === 1)
       {
